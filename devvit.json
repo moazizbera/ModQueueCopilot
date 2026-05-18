@@ -1,0 +1,79 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "modqueue-copilot",
+  "post": {
+    "dir": "dist/client",
+    "entrypoints": {
+      "default": {
+        "inline": true,
+        "entry": "splash.html"
+      },
+      "game": {
+        "entry": "game.html"
+      }
+    }
+  },
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.cjs"
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Analyze with ModQueue Copilot",
+        "description": "Directly analyze this post with a linked moderation console",
+        "location": "post",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/analyze-current-post"
+      },
+      {
+        "label": "Analyze Reddit post by URL or ID",
+        "description": "Fallback: paste a post URL or ID when you are not launching from the post menu",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/analyze-post-form"
+      },
+      {
+        "label": "Create spam demo post",
+        "description": "Seed a high-confidence spam scenario",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/post-create-spam"
+      },
+      {
+        "label": "Create promotion demo post",
+        "description": "Seed a promotional edge case",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/post-create-promotion"
+      },
+      {
+        "label": "Create question demo post",
+        "description": "Seed a good-faith rules question",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/post-create-question"
+      },
+      {
+        "label": "Create discussion demo post",
+        "description": "Seed a healthy community discussion",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/post-create-discussion"
+      }
+    ]
+  },
+  "forms": {
+    "analyzePostForm": "/internal/form/analyze-post-submit"
+  },
+  "triggers": {
+    "onAppInstall": "/internal/triggers/on-app-install"
+  },
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build"
+  },
+  "dev": {
+    "subreddit": "modqueue_copilot_dev"
+  }
+}
