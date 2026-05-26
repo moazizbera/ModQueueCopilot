@@ -88,6 +88,8 @@ const actionLabel: Record<ModerationAction, string> = {
 
 type ConsoleTabId = 'overview' | 'controls' | 'activity';
 
+type ControlsTabId = 'setup' | 'post' | 'reply';
+
 const consoleTabs: Array<{
   description: string;
   id: ConsoleTabId;
@@ -107,6 +109,28 @@ const consoleTabs: Array<{
     id: 'activity',
     label: 'Activity',
     description: 'Handoff, queue trail, and signals',
+  },
+];
+
+const controlsTabs: Array<{
+  description: string;
+  id: ControlsTabId;
+  label: string;
+}> = [
+  {
+    id: 'setup',
+    label: 'Setup',
+    description: 'Policy, linking, and demo scenarios',
+  },
+  {
+    id: 'post',
+    label: 'Post',
+    description: 'Captured post snapshot and source info',
+  },
+  {
+    id: 'reply',
+    label: 'Reply & Action',
+    description: 'Moderator comment and one-click actions',
   },
 ];
 
@@ -327,6 +351,7 @@ export const App = () => {
   const [replyText, setReplyText] = useState('');
   const [targetPostInput, setTargetPostInput] = useState('');
   const [activeTab, setActiveTab] = useState<ConsoleTabId>('overview');
+  const [activeControlsTab, setActiveControlsTab] = useState<ControlsTabId>('reply');
 
   if (loading) {
     return (
@@ -819,258 +844,299 @@ export const App = () => {
 
           {activeTab === 'controls' ? (
             <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfe_100%)] p-6 shadow-[0_16px_45px_rgba(15,23,42,0.06)]">
-              <div className="mb-6 rounded-[24px] bg-slate-950 p-5 text-white">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
-                  Moderation Policy Profile
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
-                  Show judges how the same classifier adapts to different subreddit standards without changing the core product.
-                </p>
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
-                  {policyProfiles.map((profile) => (
-                    <button
-                      key={profile.id}
-                      className={`rounded-[22px] border px-4 py-4 text-left transition ${
-                        profile.id === activePolicyProfile.id
-                          ? 'border-white bg-white text-slate-950'
-                          : 'border-slate-700 bg-slate-900 text-white hover:border-slate-500'
-                      }`}
-                      onClick={() => void setPolicyProfile(profile.id)}
-                      disabled={submittingAction !== null}
-                    >
-                      <p className="text-sm font-semibold">{profile.label}</p>
-                      <p
-                        className={`mt-2 text-xs leading-5 ${
-                          profile.id === activePolicyProfile.id ? 'text-slate-600' : 'text-slate-300'
-                        }`}
-                      >
-                        {profile.summary}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfe_100%)] p-6 shadow-[0_16px_45px_rgba(15,23,42,0.06)]">
+                <div className="mb-6 rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#0f172a_0%,#172033_100%)] p-3 text-white shadow-[0_16px_45px_rgba(15,23,42,0.10)]">
+                  <div className="grid gap-2 md:grid-cols-3">
+                    {controlsTabs.map((tab) => {
+                      const active = tab.id === activeControlsTab;
 
-              {mode === 'seeded-demo' ? (
-                <>
-                  <div className="mb-6 rounded-[24px] bg-slate-950 p-5 text-white">
-                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
-                      Fallback Live Post Link
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">
-                      Only use this when you opened a demo console or launched from the subreddit menu. If you opened from a post menu, the post is already linked automatically.
-                    </p>
-                    <div className="mt-4 flex flex-col gap-3 md:flex-row">
-                      <input
-                        className="min-w-0 flex-1 rounded-[22px] border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-slate-500"
-                        placeholder="https://reddit.com/r/modqueue_copilot_dev/comments/..."
-                        value={targetPostInput}
-                        onChange={(event) => setTargetPostInput(event.target.value)}
-                      />
-                      <button
-                        className="rounded-[22px] bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-                        onClick={() => void linkTargetPost(targetPostInput)}
-                        disabled={submittingAction !== null || !targetPostInput.trim()}
-                      >
-                        Analyze Live Post
-                      </button>
-                    </div>
+                      return (
+                        <button
+                          key={tab.id}
+                          className={`rounded-[20px] border px-4 py-4 text-left transition ${
+                            active
+                              ? 'border-white bg-white text-slate-950'
+                              : 'border-white/10 bg-white/6 text-white hover:bg-white/10'
+                          }`}
+                          onClick={() => setActiveControlsTab(tab.id)}
+                        >
+                          <p className="text-sm font-semibold">{tab.label}</p>
+                          <p
+                            className={`mt-2 text-xs leading-5 ${
+                              active ? 'text-slate-600' : 'text-slate-300'
+                            }`}
+                          >
+                            {tab.description}
+                          </p>
+                        </button>
+                      );
+                    })}
                   </div>
+                </div>
 
-                  <div className="mb-6 rounded-[24px] bg-slate-50 p-5">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
+                {activeControlsTab === 'setup' ? (
+                  <>
+                    <div className="mb-6 rounded-[24px] bg-slate-950 p-5 text-white">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                        Moderation Policy Profile
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">
+                        Show judges how the same classifier adapts to different subreddit standards without changing the core product.
+                      </p>
+                      <div className="mt-4 grid gap-3 md:grid-cols-3">
+                        {policyProfiles.map((profile) => (
+                          <button
+                            key={profile.id}
+                            className={`rounded-[22px] border px-4 py-4 text-left transition ${
+                              profile.id === activePolicyProfile.id
+                                ? 'border-white bg-white text-slate-950'
+                                : 'border-slate-700 bg-slate-900 text-white hover:border-slate-500'
+                            }`}
+                            onClick={() => void setPolicyProfile(profile.id)}
+                            disabled={submittingAction !== null}
+                          >
+                            <p className="text-sm font-semibold">{profile.label}</p>
+                            <p
+                              className={`mt-2 text-xs leading-5 ${
+                                profile.id === activePolicyProfile.id
+                                  ? 'text-slate-600'
+                                  : 'text-slate-300'
+                              }`}
+                            >
+                              {profile.summary}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {mode === 'seeded-demo' ? (
+                      <>
+                        <div className="mb-6 rounded-[24px] bg-slate-950 p-5 text-white">
+                          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                            Fallback Live Post Link
+                          </p>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">
+                            Only use this when you opened a demo console or launched from the subreddit menu. If you opened from a post menu, the post is already linked automatically.
+                          </p>
+                          <div className="mt-4 flex flex-col gap-3 md:flex-row">
+                            <input
+                              className="min-w-0 flex-1 rounded-[22px] border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-slate-500"
+                              placeholder="https://reddit.com/r/modqueue_copilot_dev/comments/..."
+                              value={targetPostInput}
+                              onChange={(event) => setTargetPostInput(event.target.value)}
+                            />
+                            <button
+                              className="rounded-[22px] bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                              onClick={() => void linkTargetPost(targetPostInput)}
+                              disabled={submittingAction !== null || !targetPostInput.trim()}
+                            >
+                              Analyze Live Post
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="mb-6 rounded-[24px] bg-slate-50 p-5">
+                          <div className="flex items-center justify-between gap-4">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                                Demo Scenarios
+                              </p>
+                              <p className="mt-2 text-sm leading-6 text-slate-600">
+                                Switch examples live during the demo to show how the classifier adapts across the mod queue.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-4 grid gap-3 md:grid-cols-2">
+                            {scenarios.map((scenario) => (
+                              <ScenarioButton
+                                key={scenario.id}
+                                active={scenario.id === activeScenario?.id}
+                                onClick={() => void setScenario(scenario.id)}
+                                scenario={scenario}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="mb-6 rounded-[24px] bg-slate-50 p-5">
                         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                          Demo Scenarios
+                          Linked Analysis
                         </p>
                         <p className="mt-2 text-sm leading-6 text-slate-600">
-                          Switch examples live during the demo to show how the classifier adapts across the mod queue.
+                          This console is analyzing a real Reddit post selected from the moderation menu, not a seeded demo scenario.
                         </p>
                       </div>
+                    )}
+                  </>
+                ) : null}
+
+                {activeControlsTab === 'post' ? (
+                  <>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                          Post Snapshot
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                          Review the captured post content and act directly from this panel.
+                        </p>
+                      </div>
+                      <button
+                        className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                        onClick={() => navigateTo(post.permalink)}
+                      >
+                        Open on Reddit
+                      </button>
                     </div>
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
-                      {scenarios.map((scenario) => (
-                        <ScenarioButton
-                          key={scenario.id}
-                          active={scenario.id === activeScenario?.id}
-                          onClick={() => void setScenario(scenario.id)}
-                          scenario={scenario}
+                    <div className="mt-6 rounded-[24px] bg-slate-50 p-5">
+                      <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                        <span>{new Date(post.createdAt).toLocaleString()}</span>
+                        <span>{post.id}</span>
+                        <span>
+                          {mode === 'seeded-demo'
+                            ? activeScenario?.summary
+                            : 'Live Reddit post selected from the moderator menu'}
+                        </span>
+                      </div>
+                      <p className="mt-4 whitespace-pre-wrap rounded-[20px] bg-white px-4 py-4 text-sm leading-7 text-slate-700 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.15)]">
+                        {post.body}
+                      </p>
+                    </div>
+                  </>
+                ) : null}
+
+                {activeControlsTab === 'reply' ? (
+                  <div className="rounded-[28px] border border-slate-200 bg-slate-950 p-5 text-white shadow-[0_16px_45px_rgba(15,23,42,0.14)]">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                          Action Center
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-slate-300">
+                          Recommended next move is highlighted first so a moderator can act without scanning the whole dashboard.
+                        </p>
+                      </div>
+                      <div className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-100">
+                        Recommended: {recommendedActionLabel(primaryAction)}
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
+                      <div className="rounded-[24px] border border-white/10 bg-white/6 p-5 backdrop-blur-sm">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                          Suggested Reply
+                        </p>
+                        <textarea
+                          className="mt-4 min-h-28 w-full rounded-[22px] border border-white/10 bg-slate-900 px-4 py-4 text-sm leading-6 text-slate-100 outline-none transition focus:border-slate-500"
+                          value={replyText || analysis.replySuggestion}
+                          onChange={(event) => setReplyText(event.target.value)}
                         />
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="mb-6 rounded-[24px] bg-slate-50 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                    Linked Analysis
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    This console is analyzing a real Reddit post selected from the moderation menu, not a seeded demo scenario.
-                  </p>
-                </div>
-              )}
+                        <p className="mt-3 text-xs leading-5 text-slate-400">
+                          The reply editor is separated here so the moderator can read and edit the comment without scrolling past setup panels first.
+                        </p>
+                      </div>
 
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                    Post Snapshot
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Review the captured post content and act directly from this panel.
-                  </p>
-                </div>
-                <button
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                  onClick={() => navigateTo(post.permalink)}
-                >
-                  Open on Reddit
-                </button>
-              </div>
-              <div className="mt-6 rounded-[24px] bg-slate-50 p-5">
-                <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                  <span>{new Date(post.createdAt).toLocaleString()}</span>
-                  <span>{post.id}</span>
-                  <span>
-                    {mode === 'seeded-demo'
-                      ? activeScenario?.summary
-                      : 'Live Reddit post selected from the moderator menu'}
-                  </span>
-                </div>
-                <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-700">
-                  {post.body}
-                </p>
-              </div>
-
-              <div className="mt-6 rounded-[28px] border border-slate-200 bg-slate-950 p-5 text-white shadow-[0_16px_45px_rgba(15,23,42,0.14)]">
-                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
-                      Action Center
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">
-                      Recommended next move is highlighted first so a moderator can act without scanning the whole dashboard.
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-100">
-                    Recommended: {recommendedActionLabel(primaryAction)}
-                  </div>
-                </div>
-
-                <div className="mt-5 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
-                  <div className="rounded-[24px] border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      Suggested Reply
-                    </p>
-                    <textarea
-                      className="mt-3 min-h-36 w-full rounded-[22px] border border-white/10 bg-slate-900 px-4 py-4 text-sm leading-6 text-slate-100 outline-none transition focus:border-slate-500"
-                      value={replyText || analysis.replySuggestion}
-                      onChange={(event) => setReplyText(event.target.value)}
-                    />
-                    <p className="mt-3 text-xs leading-5 text-slate-400">
-                      Reply can be edited before posting. Dashboard refreshes automatically every 20 seconds.
-                    </p>
-                  </div>
-
-                  <div className="rounded-[24px] border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      One-click actions
-                    </p>
-                    <button
-                      className={`mt-4 flex w-full items-center justify-center rounded-[22px] px-4 py-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                        primaryAction === 'remove'
-                          ? 'bg-rose-500 text-white hover:bg-rose-600'
-                          : primaryAction === 'review'
-                            ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
-                            : 'bg-emerald-400 text-slate-950 hover:bg-emerald-300'
-                      }`}
-                      onClick={() => void runAction(primaryAction)}
-                      disabled={submittingAction !== null}
-                    >
-                      {isSubmitting(primaryAction)
-                        ? primaryAction === 'remove'
-                          ? 'Removing...'
-                          : primaryAction === 'review'
-                            ? 'Reviewing...'
-                            : 'Approving...'
-                        : recommendedActionLabel(primaryAction)}
-                    </button>
-
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      {secondaryActions.map((action) => (
+                      <div className="rounded-[24px] border border-white/10 bg-white/6 p-5 backdrop-blur-sm">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                          One-click actions
+                        </p>
                         <button
-                          key={action}
-                          className="rounded-[20px] border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-60"
-                          onClick={() =>
-                            action === 'reply'
-                              ? void runAction('reply', currentReplyText)
-                              : void runAction(action)
-                          }
+                          className={`mt-4 flex w-full items-center justify-center rounded-[22px] px-4 py-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                            primaryAction === 'remove'
+                              ? 'bg-rose-500 text-white hover:bg-rose-600'
+                              : primaryAction === 'review'
+                                ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
+                                : 'bg-emerald-400 text-slate-950 hover:bg-emerald-300'
+                          }`}
+                          onClick={() => void runAction(primaryAction)}
                           disabled={submittingAction !== null}
                         >
-                          {isSubmitting(action)
-                            ? action === 'reply'
-                              ? 'Replying...'
-                              : action === 'remove'
-                                ? 'Removing...'
-                                : action === 'review'
-                                  ? 'Reviewing...'
-                                  : 'Approving...'
-                            : actionLabel[action]}
+                          {isSubmitting(primaryAction)
+                            ? primaryAction === 'remove'
+                              ? 'Removing...'
+                              : primaryAction === 'review'
+                                ? 'Reviewing...'
+                                : 'Approving...'
+                            : recommendedActionLabel(primaryAction)}
                         </button>
-                      ))}
-                    </div>
 
-                    {mode === 'live-target' && audit.lastAction === 'remove' ? (
-                      <div className="mt-4 rounded-[20px] border border-rose-300/25 bg-rose-400/10 px-4 py-4 text-sm leading-6 text-rose-100">
-                        <p className="font-semibold uppercase tracking-[0.18em]">
-                          Removed By ModQueue Copilot
-                        </p>
-                        <p className="mt-2">
-                          The linked Reddit post was sent through the remove action. Moderators may still see it, but it is now in a removed moderation state rather than normal community flow.
-                        </p>
+                        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                          {secondaryActions.map((action) => (
+                            <button
+                              key={action}
+                              className="rounded-[20px] border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-60"
+                              onClick={() =>
+                                action === 'reply'
+                                  ? void runAction('reply', currentReplyText)
+                                  : void runAction(action)
+                              }
+                              disabled={submittingAction !== null}
+                            >
+                              {isSubmitting(action)
+                                ? action === 'reply'
+                                  ? 'Replying...'
+                                  : action === 'remove'
+                                    ? 'Removing...'
+                                    : action === 'review'
+                                      ? 'Reviewing...'
+                                      : 'Approving...'
+                                : actionLabel[action]}
+                            </button>
+                          ))}
+                        </div>
+
+                        {mode === 'live-target' && audit.lastAction === 'remove' ? (
+                          <div className="mt-4 rounded-[20px] border border-rose-300/25 bg-rose-400/10 px-4 py-4 text-sm leading-6 text-rose-100">
+                            <p className="font-semibold uppercase tracking-[0.18em]">
+                              Removed By ModQueue Copilot
+                            </p>
+                            <p className="mt-2">
+                              The linked Reddit post was sent through the remove action. Moderators may still see it, but it is now in a removed moderation state rather than normal community flow.
+                            </p>
+                          </div>
+                        ) : null}
                       </div>
-                    ) : null}
+                    </div>
+                  </div>
+                ) : null}
+
+                {error ? (
+                  <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {error}
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="space-y-6">
+                <div className="rounded-[30px] border border-slate-200 bg-[#f7f3ff] p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                    Why This Tab Exists
+                  </p>
+                  <p className="mt-3 text-sm leading-7 text-slate-600">
+                    This section groups everything a moderator actually controls: policy profile,
+                    demo/live target selection, post review, reply draft, and the action center.
+                    It reduces the long scroll path during demos and makes the workflow feel more
+                    like a purposeful operations tool.
+                  </p>
+                </div>
+
+                <div className="rounded-[30px] border border-slate-200 bg-white p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                    Quick Facts
+                  </p>
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <MetricCard label="Policy" tone="text-slate-950" value={activePolicyProfile.label} />
+                    <MetricCard
+                      label="Mode"
+                      tone="text-slate-950"
+                      value={mode === 'live-target' ? 'Live post' : 'Seeded demo'}
+                    />
                   </div>
                 </div>
-              </div>
-
-              {error ? (
-                <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                  {error}
-                </div>
-              ) : null}
-            </section>
-
-            <section className="space-y-6">
-              <div className="rounded-[30px] border border-slate-200 bg-[#f7f3ff] p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  Why This Tab Exists
-                </p>
-                <p className="mt-3 text-sm leading-7 text-slate-600">
-                  This section groups everything a moderator actually controls: policy profile,
-                  demo/live target selection, post review, reply draft, and the action center.
-                  It reduces the long scroll path during demos and makes the workflow feel more
-                  like a purposeful operations tool.
-                </p>
-              </div>
-
-              <div className="rounded-[30px] border border-slate-200 bg-white p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  Quick Facts
-                </p>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <MetricCard label="Policy" tone="text-slate-950" value={activePolicyProfile.label} />
-                  <MetricCard
-                    label="Mode"
-                    tone="text-slate-950"
-                    value={mode === 'live-target' ? 'Live post' : 'Seeded demo'}
-                  />
-                </div>
-              </div>
-            </section>
-          </div>
+              </section>
+            </div>
           ) : null}
 
           {activeTab === 'activity' ? (
