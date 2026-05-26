@@ -6,14 +6,16 @@ import { createRoot } from 'react-dom/client';
 import type { ModerationAction, ModerationDashboardResponse } from '../shared/api';
 import { useModerationAssistant } from './hooks/useModerationAssistant';
 
+const moderationActions: ModerationAction[] = ['approve', 'remove', 'review'];
+
 const badgeTone = (decision: ModerationDashboardResponse['analysis']['decision']) => {
   switch (decision) {
     case 'remove':
-      return 'bg-rose-600 text-white';
+      return 'bg-rose-500 text-white shadow-[0_18px_40px_rgba(244,63,94,0.28)]';
     case 'review':
-      return 'bg-amber-500 text-white';
+      return 'bg-amber-400 text-slate-950 shadow-[0_18px_40px_rgba(251,191,36,0.24)]';
     case 'approve':
-      return 'bg-emerald-600 text-white';
+      return 'bg-emerald-400 text-slate-950 shadow-[0_18px_40px_rgba(52,211,153,0.24)]';
   }
 };
 
@@ -56,130 +58,263 @@ const recommendedActionLabel = (
   }
 };
 
+const decisionHeadline = (
+  decision: ModerationDashboardResponse['analysis']['decision']
+): string => {
+  switch (decision) {
+    case 'remove':
+      return 'High-risk post. Remove before it spreads.';
+    case 'review':
+      return 'Borderline post. Escalate for moderator review.';
+    case 'approve':
+      return 'Low-risk post. Approve and keep momentum.';
+  }
+};
+
+const actionLabel: Record<ModerationAction, string> = {
+  approve: 'Approve',
+  remove: 'Remove',
+  reply: 'Reply',
+  review: 'Review',
+};
+
+const actionTone = (action: ModerationAction, primary: boolean): string => {
+  if (primary) {
+    switch (action) {
+      case 'remove':
+        return 'bg-rose-500 text-white hover:bg-rose-600';
+      case 'review':
+        return 'bg-amber-400 text-slate-950 hover:bg-amber-300';
+      case 'approve':
+        return 'bg-emerald-400 text-slate-950 hover:bg-emerald-300';
+      case 'reply':
+        return 'bg-sky-400 text-slate-950 hover:bg-sky-300';
+    }
+  }
+
+  return 'border border-white/12 bg-white/6 text-white hover:bg-white/10';
+};
+
+const queuePriorityLabel = (
+  priority: ModerationDashboardResponse['analysis']['caseFile']['queuePriority']
+): string => `${priority.charAt(0).toUpperCase()}${priority.slice(1)} priority`;
+
+const formatCompactNumber = (value: number): string => {
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(1)}k`;
+  }
+
+  return `${value}`;
+};
+
+const formatActionCopy = (action: ModerationAction, submitting: boolean): string => {
+  if (!submitting) {
+    return actionLabel[action];
+  }
+
+  switch (action) {
+    case 'approve':
+      return 'Approving...';
+    case 'remove':
+      return 'Removing...';
+    case 'review':
+      return 'Reviewing...';
+    case 'reply':
+      return 'Replying...';
+  }
+};
+
+const metaTone = (
+  decision: ModerationDashboardResponse['analysis']['decision']
+): string => {
+  switch (decision) {
+    case 'remove':
+      return 'text-rose-200';
+    case 'review':
+      return 'text-amber-200';
+    case 'approve':
+      return 'text-emerald-200';
+  }
+};
+
+const MiniStat = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) => (
+  <div className="rounded-3xl border border-white/10 bg-white/6 px-4 py-3 backdrop-blur-sm">
+    <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">{label}</p>
+    <p className="mt-2 text-lg font-semibold text-white">{value}</p>
+  </div>
+);
+
 export const Splash = () => {
   const { dashboard, error, loading, runAction, submittingAction } = useModerationAssistant();
 
   const isSubmitting = (action: ModerationAction): boolean => submittingAction === action;
 
+  const primaryAction = dashboard?.analysis.decision;
+  const secondaryActions = moderationActions.filter(
+    (action) => action !== primaryAction
+  );
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fdf2d3,transparent_42%),linear-gradient(180deg,#f7f1e7_0%,#efe7da_100%)] px-4 py-5 text-slate-900">
-      <div className="mx-auto rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_20px_70px_rgba(15,23,42,0.10)] backdrop-blur">
-        <div className="flex items-center justify-between gap-3">
+    <div className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,#f8d87a_0%,transparent_34%),radial-gradient(circle_at_bottom_right,#fb7185_0%,transparent_26%),linear-gradient(180deg,#121826_0%,#1e293b_48%,#f4efe7_48%,#efe3d0_100%)] px-4 py-5 text-slate-900">
+      <div className="mx-auto max-w-[28rem] rounded-[32px] border border-white/12 bg-slate-950/88 p-5 shadow-[0_36px_120px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-200/90">
               ModQueue Copilot
             </p>
-            <h1 className="mt-2 text-xl font-semibold text-slate-950">
-              Queue triage for u/{context.username ?? 'moderator'}
+            <h1 className="mt-2 text-[1.65rem] font-semibold leading-tight text-white">
+              Moderator triage for u/{context.username ?? 'moderator'}
             </h1>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              Instant verdict, transparent reasons, and direct action from the post itself.
+            </p>
           </div>
-          {dashboard ? (
-            <span
-              className={`rounded-full px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] ${badgeTone(dashboard.analysis.decision)}`}
-            >
-              {dashboard.analysis.decision}
-            </span>
-          ) : null}
+          <div className="rounded-full border border-white/12 bg-white/8 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-300">
+            {dashboard
+              ? dashboard.mode === 'live-target'
+                ? 'Live'
+                : 'Demo'
+              : 'Loading'}
+          </div>
         </div>
 
-        <div className="mt-4 rounded-[22px] bg-slate-950 p-4 text-white">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            Direct Post Analysis
-          </p>
+        <div className="mt-5 rounded-[30px] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04))] p-5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
           {loading ? (
-            <div className="mt-3 h-16 animate-pulse rounded-2xl bg-slate-800" />
+            <div className="space-y-3 animate-pulse">
+              <div className="h-5 w-32 rounded-full bg-white/10" />
+              <div className="h-10 rounded-2xl bg-white/10" />
+              <div className="h-20 rounded-3xl bg-white/10" />
+              <div className="grid grid-cols-3 gap-2">
+                <div className="h-16 rounded-3xl bg-white/10" />
+                <div className="h-16 rounded-3xl bg-white/10" />
+                <div className="h-16 rounded-3xl bg-white/10" />
+              </div>
+            </div>
           ) : dashboard ? (
             <>
-              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                {dashboard.mode === 'live-target'
-                  ? 'Already linked to the current Reddit post'
-                  : 'Demo console loaded. Use the post menu for one-tap live analysis.'}
-              </p>
-              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                {riskLevelLabel(dashboard.analysis.decision, dashboard.analysis.confidence)}
-              </p>
-              <p className="mt-2 text-lg font-semibold">
-                {categoryLabel(dashboard.analysis.category)} ({dashboard.analysis.confidence}%)
-              </p>
-              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">
-                Recommended action: {recommendedActionLabel(dashboard.analysis.decision)}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-slate-300">
-                {dashboard.analysis.reason}
-              </p>
-              <div className="mt-3 grid gap-2">
-                {dashboard.analysis.signals.slice(0, 2).map((signal) => (
-                  <div key={`${signal.label}-${signal.detail}`} className="rounded-xl bg-slate-900 px-3 py-2 text-xs leading-5 text-slate-300">
-                    <span className="font-semibold text-white">{signal.label}:</span> {signal.detail}
+              <div className="flex items-center justify-between gap-3">
+                <span
+                  className={`rounded-full px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] ${badgeTone(dashboard.analysis.decision)}`}
+                >
+                  {riskLevelLabel(dashboard.analysis.decision, dashboard.analysis.confidence)}
+                </span>
+                <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${metaTone(dashboard.analysis.decision)}`}>
+                  {queuePriorityLabel(dashboard.analysis.caseFile.queuePriority)}
+                </span>
+              </div>
+
+              <h2 className="mt-4 text-2xl font-semibold leading-tight text-white">
+                {decisionHeadline(dashboard.analysis.decision)}
+              </h2>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+                <span>{categoryLabel(dashboard.analysis.category)}</span>
+                <span className="text-slate-500">/</span>
+                <span>{recommendedActionLabel(dashboard.analysis.decision)}</span>
+                <span className="text-slate-500">/</span>
+                <span>{dashboard.analysis.confidence}% confidence</span>
+              </div>
+
+              <p className="mt-4 text-sm leading-6 text-slate-200">{dashboard.analysis.reason}</p>
+
+              <div className="mt-4 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className={`h-2 rounded-full ${badgeTone(dashboard.analysis.decision)}`}
+                  style={{ width: `${dashboard.analysis.confidence}%` }}
+                />
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <MiniStat label="Confidence" value={`${dashboard.analysis.confidence}%`} />
+                <MiniStat label="Reports" value={formatCompactNumber(dashboard.post.numberOfReports)} />
+                <MiniStat label="Comments" value={formatCompactNumber(dashboard.post.numberOfComments)} />
+              </div>
+
+              <div className="mt-4 grid gap-2">
+                {dashboard.analysis.signals.slice(0, 3).map((signal) => (
+                  <div
+                    key={`${signal.label}-${signal.detail}`}
+                    className="rounded-2xl border border-white/10 bg-white/6 px-3 py-3 text-sm leading-5 text-slate-200"
+                  >
+                    <span className="font-semibold text-white">{signal.label}</span>
+                    <span className="text-slate-400"> {'->'} </span>
+                    {signal.detail}
                   </div>
                 ))}
               </div>
-              <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-400">
-                {dashboard.post.title}
-              </p>
+
+              <div className="mt-4 rounded-3xl border border-white/10 bg-black/20 p-4">
+                <div className="flex items-center justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                  <span>Post snapshot</span>
+                  <span>r/{dashboard.post.subredditName}</span>
+                </div>
+                <p className="mt-3 line-clamp-2 text-base font-semibold leading-6 text-white">
+                  {dashboard.post.title}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
+                  <span>u/{dashboard.post.authorName}</span>
+                  <span>Score {formatCompactNumber(dashboard.post.score)}</span>
+                  <span>{dashboard.post.source === 'linked-target' ? 'Live target' : 'Seeded scenario'}</span>
+                </div>
+              </div>
             </>
           ) : (
-            <p className="mt-3 text-sm leading-6 text-slate-300">
+            <div className="rounded-3xl border border-rose-400/20 bg-rose-500/10 px-4 py-4 text-sm leading-6 text-rose-100">
               The dashboard could not load for this post context.
-            </p>
+            </div>
           )}
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-3 text-xs text-slate-500">
-          <span>{dashboard ? `r/${dashboard.post.subredditName}` : 'Awaiting dashboard data'}</span>
-          <span>
-            {dashboard
-              ? dashboard.mode === 'live-target'
-                ? 'Live target'
-                : 'Demo mode'
-              : context.postId}
-          </span>
-        </div>
-
         {dashboard ? (
-          <div className="mt-4 rounded-[20px] border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">
-            Live actions only work for posts inside r/{dashboard.post.subredditName}, where this app is installed for moderators.
+          <div className="mt-4 rounded-3xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-xs leading-5 text-amber-100">
+            {dashboard.mode === 'live-target'
+              ? `Live moderation is armed for r/${dashboard.post.subredditName}.`
+              : `Demo mode is active. Launch from a post menu for one-tap live moderation in r/${dashboard.post.subredditName}.`}
           </div>
         ) : null}
 
-        {dashboard ? (
-          <div className="mt-4 grid grid-cols-3 gap-2">
+        {dashboard && primaryAction ? (
+          <div className="mt-4">
             <button
-              className="flex h-10 items-center justify-center rounded-full bg-emerald-600 px-3 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={() => void runAction('approve')}
+              className={`flex h-12 w-full items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(primaryAction, true)}`}
+              onClick={() => void runAction(primaryAction)}
               disabled={submittingAction !== null}
             >
-              {isSubmitting('approve') ? 'Approving...' : 'Approve'}
+              {formatActionCopy(primaryAction, isSubmitting(primaryAction))}
             </button>
-            <button
-              className="flex h-10 items-center justify-center rounded-full bg-rose-600 px-3 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={() => void runAction('remove')}
-              disabled={submittingAction !== null}
-            >
-              {isSubmitting('remove') ? 'Removing...' : 'Remove'}
-            </button>
-            <button
-              className="flex h-10 items-center justify-center rounded-full bg-amber-500 px-3 text-xs font-semibold text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={() => void runAction('review')}
-              disabled={submittingAction !== null}
-            >
-              {isSubmitting('review') ? 'Reviewing...' : 'Review'}
-            </button>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {secondaryActions.map((action) => (
+                <button
+                  key={action}
+                  className={`flex h-11 items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(action, false)}`}
+                  onClick={() => void runAction(action)}
+                  disabled={submittingAction !== null}
+                >
+                  {formatActionCopy(action, isSubmitting(action))}
+                </button>
+              ))}
+            </div>
           </div>
         ) : null}
 
         {error ? (
-          <div className="mt-4 rounded-[18px] border border-rose-200 bg-rose-50 px-4 py-3 text-xs leading-5 text-rose-700">
+          <div className="mt-4 rounded-3xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-xs leading-5 text-rose-100">
             {error}
           </div>
         ) : null}
 
-        <div className="mt-4 rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-600">
-          If you launched from the post menu, this card is already analyzing that post directly. Pasting a URL is only for the subreddit-level fallback flow.
+        <div className="mt-4 rounded-3xl border border-white/10 bg-white/6 px-4 py-3 text-xs leading-5 text-slate-300">
+          Best demo path: open a post, launch ModQueue Copilot from the menu, show the verdict, top signals, and the primary action button.
         </div>
 
         <button
-          className="mt-5 flex h-11 w-full items-center justify-center rounded-full bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="mt-5 flex h-12 w-full items-center justify-center rounded-full border border-white/12 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
           onClick={(e) => requestExpandedMode(e.nativeEvent, 'game')}
         >
           Open Full Moderation Console
