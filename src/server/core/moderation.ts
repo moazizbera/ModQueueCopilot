@@ -30,6 +30,7 @@ import {
   getModerationScenario,
   getModerationScenarios,
   isModerationScenarioId,
+  pickModerationScenario,
 } from './scenarios';
 
 type PersistedAuditState = {
@@ -41,6 +42,7 @@ type PersistedAuditState = {
 type PersistedPostData = {
   policyProfileId?: ModerationPolicyProfileId;
   scenarioId?: ModerationScenarioId;
+  scenarioVariantIndex?: number;
   targetPostId?: T3;
 };
 
@@ -446,6 +448,21 @@ const readScenarioIdFromPostData = async (
 
   const scenarioId = Reflect.get(postData, 'scenarioId');
   return isModerationScenarioId(scenarioId) ? scenarioId : defaultScenarioId;
+};
+
+const readScenarioVariantIndexFromPostData = async (
+  post: Post
+): Promise<number> => {
+  const postData = await post.getPostData();
+
+  if (!postData || typeof postData !== 'object' || Array.isArray(postData)) {
+    return 0;
+  }
+
+  const scenarioVariantIndex = Reflect.get(postData, 'scenarioVariantIndex');
+  return typeof scenarioVariantIndex === 'number' && Number.isInteger(scenarioVariantIndex)
+    ? scenarioVariantIndex
+    : 0;
 };
 
 const readTargetPostIdFromPostData = async (
@@ -1281,7 +1298,8 @@ const createLiveAnalysisInput = (post: Post): AnalysisInput => ({
 
 const persistScenarioSelection = async (
   post: Post,
-  scenarioId: ModerationScenarioId
+  scenarioId: ModerationScenarioId,
+  scenarioVariantIndex: number
 ): Promise<void> => {
   const currentPostData = await post.getPostData();
   const nextPostData: PersistedPostData = {
@@ -1289,9 +1307,12 @@ const persistScenarioSelection = async (
       ? (currentPostData as PersistedPostData)
       : {}),
     scenarioId,
+    scenarioVariantIndex,
   };
   await post.setPostData(nextPostData);
-  await post.setTextFallback({ text: getModerationScenario(scenarioId).body });
+  await post.setTextFallback({
+    text: getModerationScenario(scenarioId, scenarioVariantIndex).body,
+  });
 };
 
 const persistPolicyProfileSelection = async (
@@ -1313,9 +1334,10 @@ export const buildModerationDashboard = async (): Promise<ModerationDashboardRes
     requireCurrentPost(),
     reddit.getCurrentUsername(),
   ]);
-  const [audit, scenarioId, policyProfileId, targetPostId] = await Promise.all([
+  const [audit, scenarioId, scenarioVariantIndex, policyProfileId, targetPostId] = await Promise.all([
     readAuditState(post.id),
     readScenarioIdFromPostData(post),
+    readScenarioVariantIndexFromPostData(post),
     readPolicyProfileIdFromPostData(post),
     readTargetPostIdFromPostData(post),
   ]);
@@ -1352,7 +1374,7 @@ export const buildModerationDashboard = async (): Promise<ModerationDashboardRes
     };
   }
 
-  const activeScenario = getModerationScenario(scenarioId);
+  const activeScenario = getModerationScenario(scenarioId, scenarioVariantIndex);
   const analysisInput = createAnalysisInput(post, activeScenario);
   const impact = await readImpactState(analysisInput.subredditName);
   const authorRiskContext = buildAuthorRiskContext(
@@ -1413,7 +1435,10 @@ export const executeModerationAction = async (
     ? createLiveAnalysisInput(moderatedPost)
     : createAnalysisInput(
         moderatedPost,
-        getModerationScenario(await readScenarioIdFromPostData(consolePost))
+        getModerationScenario(
+          await readScenarioIdFromPostData(consolePost),
+          await readScenarioVariantIndexFromPostData(consolePost)
+        )
       );
   const impact = await readImpactState(analysisInput.subredditName);
   const authorRiskContext = buildAuthorRiskContext(
@@ -1478,18 +1503,19 @@ export const setModerationScenario = async (
   scenarioId: ModerationScenarioId
 ): Promise<ModerationDashboardResponse> => {
   const post = await requireCurrentPost();
-  await persistScenarioSelection(post, scenarioId);
+  const { scenario, variantIndex } = pickModerationScenario(scenarioId);
+  await persistScenarioSelection(post, scenarioId, variantIndex);
   await recordImpactEvent({
     activity: createActivityItem({
       authorName: post.authorName,
       category: null,
       createdAt: new Date().toISOString(),
       decision: null,
-      detail: `Switched demo console to ${getModerationScenario(scenarioId).label}.`,
+      detail: `Switched demo console to ${scenario.label}.`,
       eventType: 'switch-scenario',
       mode: 'seeded-demo',
       subredditName: post.subredditName,
-      title: getModerationScenario(scenarioId).title,
+      title: scenario.title,
     }),
     incrementScenarioSwitches: true,
     subredditName: post.subredditName,

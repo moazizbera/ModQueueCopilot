@@ -2,7 +2,7 @@ import { context, reddit } from '@devvit/web/server';
 import type { T3 } from '@devvit/shared-types/tid.js';
 import type { Post } from '@devvit/web/server';
 import type { ModerationScenarioId } from '../../shared/api';
-import { defaultScenarioId, getModerationScenario } from './scenarios';
+import { defaultScenarioId, pickModerationScenario } from './scenarios';
 
 type CreateScenarioPostOptions = {
   scenarioId?: ModerationScenarioId;
@@ -50,12 +50,13 @@ export const createPost = async ({
     });
   }
 
-  const scenario = getModerationScenario(scenarioId);
+  const { scenario, variantIndex } = pickModerationScenario(scenarioId);
 
   return await reddit.submitCustomPost({
     entry: 'default',
     postData: {
       scenarioId,
+      scenarioVariantIndex: variantIndex,
     },
     textFallback: {
       text: scenario.body,
