@@ -16,18 +16,6 @@ import type {
 } from '../shared/api';
 import { useModerationAssistant } from './hooks/useModerationAssistant';
 
-const confidenceTone = (confidence: number): string => {
-  if (confidence >= 85) {
-    return 'text-rose-700 bg-rose-100 border-rose-200';
-  }
-
-  if (confidence >= 65) {
-    return 'text-amber-700 bg-amber-100 border-amber-200';
-  }
-
-  return 'text-emerald-700 bg-emerald-100 border-emerald-200';
-};
-
 const decisionTone = (decision: ModerationDecision): string => {
   switch (decision) {
     case 'remove':
@@ -368,6 +356,10 @@ export const App = () => {
   const currentReplyText = replyText.trim() || analysis.replySuggestion;
   const isSubmitting = (action: ModerationAction): boolean =>
     submittingAction === action;
+  const primaryAction = analysis.decision;
+  const secondaryActions = (['approve', 'remove', 'review', 'reply'] as ModerationAction[]).filter(
+    (action) => action !== primaryAction
+  );
   const timeSavedMinutes =
     mode === 'live-target'
       ? 9
@@ -443,73 +435,67 @@ export const App = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-3xl">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_340px]">
+            <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
                 ModQueue Copilot
               </p>
-              <div className="mt-4 rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_12px_35px_rgba(15,23,42,0.06)]">
+              <div className="mt-4 overflow-hidden rounded-[32px] border border-slate-900/10 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.20),transparent_28%),linear-gradient(135deg,#0f172a_0%,#172033_55%,#1f2937_100%)] p-6 text-white shadow-[0_22px_70px_rgba(15,23,42,0.18)]">
                 <div className="flex flex-wrap items-center gap-3">
                   <span
                     className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] ${decisionTone(analysis.decision)}`}
                   >
                     {recommendedActionLabel(analysis.decision)}
                   </span>
-                  <span
-                    className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] ${confidenceTone(analysis.confidence)}`}
-                  >
+                  <span className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-100">
                     {verdictRisk}
                   </span>
+                  <span className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-100">
+                    {analysis.confidence}% confidence
+                  </span>
                 </div>
-                <h1 className="mt-4 max-w-4xl text-3xl font-semibold leading-tight text-slate-950 md:text-4xl">
+                <h1 className="mt-5 max-w-4xl text-3xl font-semibold leading-tight text-white md:text-[2.65rem]">
                   {verdictTitle}
                 </h1>
-                <p className="mt-3 text-sm font-medium uppercase tracking-[0.16em] text-slate-500">
-                  Recommended action: {recommendedActionLabel(analysis.decision)}
+                <p className="mt-4 max-w-3xl text-base leading-7 text-slate-200">
+                  {analysis.reason}
                 </p>
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <div className="mt-5 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className={`h-2 rounded-full ${analysis.decision === 'remove' ? 'bg-rose-400' : analysis.decision === 'review' ? 'bg-amber-300' : 'bg-emerald-300'}`}
+                    style={{ width: `${analysis.confidence}%` }}
+                  />
+                </div>
+                <div className="mt-5 grid gap-3 md:grid-cols-3">
                   {topReasons.map((signal) => (
-                    <div key={`${signal.label}-${signal.detail}`} className="rounded-2xl bg-slate-50 px-4 py-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    <div key={`${signal.label}-${signal.detail}`} className="rounded-3xl border border-white/10 bg-white/8 px-4 py-4 backdrop-blur-sm">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">
                         {signal.label}
                       </p>
-                      <p className="mt-2 text-sm leading-6 text-slate-800">{signal.detail}</p>
+                      <p className="mt-2 text-sm leading-6 text-white">{signal.detail}</p>
                     </div>
                   ))}
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <span
-                  className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] ${decisionTone(analysis.decision)}`}
-                >
-                  {analysis.decision}
-                </span>
                 <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
                   {analysis.category}
                 </span>
                 <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
                   {mode === 'live-target' ? 'Live post' : `${activeScenario?.label ?? 'Demo'} demo`}
                 </span>
-                <span
-                  className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] ${confidenceTone(analysis.confidence)}`}
-                >
-                  {analysis.confidence}% confidence
+                <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
+                  Policy: {activePolicyProfile.label}
                 </span>
               </div>
               <h2 className="mt-5 max-w-4xl text-2xl font-semibold leading-tight text-slate-950 md:text-3xl">
                 {post.title}
               </h2>
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
-                {analysis.reason}
-              </p>
-              <div className="mt-5 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {statusLabel(post.status.approved, 'Approved')}
                 {statusLabel(post.status.removed, 'Removed')}
                 {statusLabel(post.status.spam, 'Spam')}
                 {statusLabel(post.status.locked, 'Locked')}
-              </div>
-              <div className="mt-4 inline-flex rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
-                Policy: {activePolicyProfile.label}
               </div>
               {mode === 'live-target' && post.status.removed ? (
                 <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
@@ -518,37 +504,52 @@ export const App = () => {
               ) : null}
             </div>
 
-            <div className="min-w-[260px] rounded-[28px] border border-slate-200 bg-slate-950 p-5 text-white">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-300">
-                Live Context
-              </p>
-              <div className="mt-4 space-y-4 text-sm text-slate-200">
-                <div>
-                  <p className="text-slate-400">Moderator</p>
-                  <p className="mt-1 font-medium text-white">u/{moderatorUsername}</p>
-                </div>
-                <div>
-                  <p className="text-slate-400">Queue</p>
-                  <p className="mt-1 font-medium text-white">r/{post.subredditName}</p>
-                </div>
-                <div>
-                  <p className="text-slate-400">Scenario Source</p>
-                  <p className="mt-1 font-medium text-white">
+            <div className="space-y-4">
+              <div className="rounded-[28px] border border-slate-200 bg-slate-950 p-5 text-white shadow-[0_16px_45px_rgba(15,23,42,0.16)]">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-300">
+                    Live Context
+                  </p>
+                  <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-200">
                     {post.source === 'seeded-scenario' ? 'Demo simulator' : 'Target Reddit post'}
-                  </p>
+                  </span>
                 </div>
-                <div>
-                  <p className="text-slate-400">Last Action</p>
-                  <p className="mt-1 font-medium text-white">
-                    {audit.lastAction ? actionLabel[audit.lastAction] : 'None'}
-                  </p>
+                <div className="mt-5 grid gap-4 text-sm text-slate-200 sm:grid-cols-2 xl:grid-cols-1">
+                  <div>
+                    <p className="text-slate-400">Moderator</p>
+                    <p className="mt-1 font-medium text-white">u/{moderatorUsername}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Queue</p>
+                    <p className="mt-1 font-medium text-white">r/{post.subredditName}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Last Action</p>
+                    <p className="mt-1 font-medium text-white">
+                      {audit.lastAction ? actionLabel[audit.lastAction] : 'None'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400">Synced</p>
+                    <p className="mt-1 font-medium text-white">
+                      {new Date(generatedAt).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-slate-400">Synced</p>
-                  <p className="mt-1 font-medium text-white">
-                    {new Date(generatedAt).toLocaleString()}
-                  </p>
-                </div>
+              </div>
+
+              <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_rgba(15,23,42,0.08)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                  Moderator Handoff
+                </p>
+                <p className="mt-3 text-lg font-semibold text-slate-950">
+                  {analysis.caseFile.nextStep}
+                </p>
+                <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
+                  <li>{analysis.caseFile.moderatorBrief}</li>
+                  <li>Queue priority: {analysis.caseFile.queuePriority}</li>
+                  <li>Recommended rule: {analysis.caseFile.recommendedRule}</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -754,7 +755,7 @@ export const App = () => {
           </div>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <section className="rounded-[30px] border border-slate-200 bg-white p-6">
+            <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfe_100%)] p-6 shadow-[0_16px_45px_rgba(15,23,42,0.06)]">
               <div className="mb-6 rounded-[24px] bg-slate-950 p-5 text-white">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
                   Moderation Policy Profile
@@ -878,18 +879,97 @@ export const App = () => {
                 </p>
               </div>
 
-              <div className="mt-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  Suggested Reply
-                </p>
-                <textarea
-                  className="mt-3 min-h-36 w-full rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-sm leading-6 text-slate-800 outline-none transition focus:border-slate-400"
-                  value={replyText || analysis.replySuggestion}
-                  onChange={(event) => setReplyText(event.target.value)}
-                />
-                <p className="mt-3 text-xs leading-5 text-slate-500">
-                  Reply can be edited before posting. Dashboard refreshes automatically every 20 seconds.
-                </p>
+              <div className="mt-6 rounded-[28px] border border-slate-200 bg-slate-950 p-5 text-white shadow-[0_16px_45px_rgba(15,23,42,0.14)]">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                      Action Center
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                      Recommended next move is highlighted first so a moderator can act without scanning the whole dashboard.
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-100">
+                    Recommended: {recommendedActionLabel(primaryAction)}
+                  </div>
+                </div>
+
+                <div className="mt-5 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+                  <div className="rounded-[24px] border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      Suggested Reply
+                    </p>
+                    <textarea
+                      className="mt-3 min-h-36 w-full rounded-[22px] border border-white/10 bg-slate-900 px-4 py-4 text-sm leading-6 text-slate-100 outline-none transition focus:border-slate-500"
+                      value={replyText || analysis.replySuggestion}
+                      onChange={(event) => setReplyText(event.target.value)}
+                    />
+                    <p className="mt-3 text-xs leading-5 text-slate-400">
+                      Reply can be edited before posting. Dashboard refreshes automatically every 20 seconds.
+                    </p>
+                  </div>
+
+                  <div className="rounded-[24px] border border-white/10 bg-white/6 p-4 backdrop-blur-sm">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                      One-click actions
+                    </p>
+                    <button
+                      className={`mt-4 flex w-full items-center justify-center rounded-[22px] px-4 py-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                        primaryAction === 'remove'
+                          ? 'bg-rose-500 text-white hover:bg-rose-600'
+                          : primaryAction === 'review'
+                            ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
+                            : 'bg-emerald-400 text-slate-950 hover:bg-emerald-300'
+                      }`}
+                      onClick={() => void runAction(primaryAction)}
+                      disabled={submittingAction !== null}
+                    >
+                      {isSubmitting(primaryAction)
+                        ? primaryAction === 'remove'
+                          ? 'Removing...'
+                          : primaryAction === 'review'
+                            ? 'Reviewing...'
+                            : 'Approving...'
+                        : recommendedActionLabel(primaryAction)}
+                    </button>
+
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {secondaryActions.map((action) => (
+                        <button
+                          key={action}
+                          className="rounded-[20px] border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-60"
+                          onClick={() =>
+                            action === 'reply'
+                              ? void runAction('reply', currentReplyText)
+                              : void runAction(action)
+                          }
+                          disabled={submittingAction !== null}
+                        >
+                          {isSubmitting(action)
+                            ? action === 'reply'
+                              ? 'Replying...'
+                              : action === 'remove'
+                                ? 'Removing...'
+                                : action === 'review'
+                                  ? 'Reviewing...'
+                                  : 'Approving...'
+                            : actionLabel[action]}
+                        </button>
+                      ))}
+                    </div>
+
+                    {mode === 'live-target' && audit.lastAction === 'remove' ? (
+                      <div className="mt-4 rounded-[20px] border border-rose-300/25 bg-rose-400/10 px-4 py-4 text-sm leading-6 text-rose-100">
+                        <p className="font-semibold uppercase tracking-[0.18em]">
+                          Removed By ModQueue Copilot
+                        </p>
+                        <p className="mt-2">
+                          The linked Reddit post was sent through the remove action. Moderators may still see it, but it is now in a removed moderation state rather than normal community flow.
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
               </div>
 
               {error ? (
@@ -897,48 +977,6 @@ export const App = () => {
                   {error}
                 </div>
               ) : null}
-
-              {mode === 'live-target' && audit.lastAction === 'remove' ? (
-                <div className="mt-5 rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-4 text-sm leading-6 text-rose-800">
-                  <p className="font-semibold uppercase tracking-[0.18em]">
-                    Removed By ModQueue Copilot
-                  </p>
-                  <p className="mt-2">
-                    The linked Reddit post was sent through the remove action. Moderators may still see it, but it is now in a removed moderation state rather than normal community flow.
-                  </p>
-                </div>
-              ) : null}
-
-              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <button
-                  className="rounded-[22px] bg-emerald-600 px-4 py-4 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  onClick={() => void runAction('approve')}
-                  disabled={submittingAction !== null}
-                >
-                  {isSubmitting('approve') ? 'Approving...' : 'Approve'}
-                </button>
-                <button
-                  className="rounded-[22px] bg-rose-600 px-4 py-4 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  onClick={() => void runAction('remove')}
-                  disabled={submittingAction !== null}
-                >
-                  {isSubmitting('remove') ? 'Removing...' : 'Remove'}
-                </button>
-                <button
-                  className="rounded-[22px] bg-amber-500 px-4 py-4 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
-                  onClick={() => void runAction('review')}
-                  disabled={submittingAction !== null}
-                >
-                  {isSubmitting('review') ? 'Marking...' : 'Review'}
-                </button>
-                <button
-                  className="rounded-[22px] bg-slate-900 px-4 py-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                  onClick={() => void runAction('reply', currentReplyText)}
-                  disabled={submittingAction !== null}
-                >
-                  {isSubmitting('reply') ? 'Replying...' : 'Reply'}
-                </button>
-              </div>
             </section>
 
             <section className="space-y-6">
