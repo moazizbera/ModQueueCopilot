@@ -1,1 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
 @import 'tailwindcss';
+
+:root {
+	--mq-bg: #f3ecdf;
+	--mq-surface: rgba(255, 251, 245, 0.9);
+	--mq-stroke: rgba(255, 255, 255, 0.68);
+	--mq-text: #0f172a;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	background:
+		radial-gradient(circle at top left, rgba(14, 165, 233, 0.13), transparent 24%),
+		radial-gradient(circle at 85% 16%, rgba(251, 191, 36, 0.16), transparent 20%),
+		radial-gradient(circle at bottom center, rgba(148, 163, 184, 0.18), transparent 28%),
+		linear-gradient(180deg, #f7f2e8 0%, var(--mq-bg) 58%, #ece3d2 100%);
+	color: var(--mq-text);
+	font-family: 'Manrope', system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: 'Space Grotesk', 'Manrope', system-ui, sans-serif;
+}
+
+#root {
+	min-height: 100vh;
+}
+
+.mq-shell {
+	position: relative;
+	overflow-x: clip;
+}
+
+.mq-shell::before,
+.mq-shell::after {
+	content: '';
+	position: fixed;
+	inset: auto;
+	pointer-events: none;
+	z-index: 0;
+	border-radius: 9999px;
+	filter: blur(50px);
+}
+
+.mq-shell::before {
+	top: 40px;
+	right: -80px;
+	width: 260px;
+	height: 260px;
+	background: rgba(245, 158, 11, 0.18);
+}
+
+.mq-shell::after {
+	left: -80px;
+	bottom: 60px;
+	width: 300px;
+	height: 300px;
+	background: rgba(14, 165, 233, 0.14);
+}
+
+.mq-console-shell {
+	position: relative;
+	z-index: 1;
+	border: 1px solid var(--mq-stroke);
+	background:
+		linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 242, 232, 0.88)),
+		var(--mq-surface);
+	box-shadow:
+		0 28px 90px rgba(15, 23, 42, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.55);
+	backdrop-filter: blur(18px);
+}
+
+.mq-kicker {
+	letter-spacing: 0.26em;
+}
+
+::-webkit-scrollbar {
+	width: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(148, 163, 184, 0.12);
+}
+
+::-webkit-scrollbar-thumb {
+	background: rgba(51, 65, 85, 0.34);
+	border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(51, 65, 85, 0.48);
+}
