@@ -86,6 +86,30 @@ const actionLabel: Record<ModerationAction, string> = {
   review: 'Review',
 };
 
+type ConsoleTabId = 'overview' | 'controls' | 'activity';
+
+const consoleTabs: Array<{
+  description: string;
+  id: ConsoleTabId;
+  label: string;
+}> = [
+  {
+    id: 'overview',
+    label: 'Overview',
+    description: 'Verdict, impact, and case file',
+  },
+  {
+    id: 'controls',
+    label: 'Controls',
+    description: 'Policy, scenarios, and action center',
+  },
+  {
+    id: 'activity',
+    label: 'Activity',
+    description: 'Handoff, queue trail, and signals',
+  },
+];
+
 const MetricCard = ({
   label,
   tone,
@@ -302,6 +326,7 @@ export const App = () => {
   } = useModerationAssistant();
   const [replyText, setReplyText] = useState('');
   const [targetPostInput, setTargetPostInput] = useState('');
+  const [activeTab, setActiveTab] = useState<ConsoleTabId>('overview');
 
   if (loading) {
     return (
@@ -554,56 +579,92 @@ export const App = () => {
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <MetricCard label="Reports" tone="text-slate-950" value={`${post.numberOfReports}`} />
-            <MetricCard label="Score" tone="text-slate-950" value={`${post.score}`} />
-            <MetricCard
-              label="Moderator Time Saved"
-              tone="text-emerald-700"
-              value={formatTimeSaved(impact.estimatedMinutesSaved || timeSavedMinutes)}
-            />
-            <MetricCard
-              label="Scams Intercepted"
-              tone="text-rose-700"
-              value={`${impact.highRiskIntercepts}`}
-            />
+          <div className="mt-8 rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(30,41,59,0.96))] p-3 shadow-[0_18px_50px_rgba(15,23,42,0.14)]">
+            <div className="grid gap-2 md:grid-cols-3">
+              {consoleTabs.map((tab) => {
+                const active = tab.id === activeTab;
+
+                return (
+                  <button
+                    key={tab.id}
+                    className={`rounded-[22px] border px-4 py-4 text-left transition ${
+                      active
+                        ? 'border-white bg-white text-slate-950 shadow-[0_12px_30px_rgba(255,255,255,0.14)]'
+                        : 'border-white/10 bg-white/6 text-white hover:bg-white/10'
+                    }`}
+                    onClick={() => setActiveTab(tab.id)}
+                  >
+                    <p className="text-sm font-semibold">{tab.label}</p>
+                    <p
+                      className={`mt-2 text-xs leading-5 ${
+                        active ? 'text-slate-600' : 'text-slate-300'
+                      }`}
+                    >
+                      {tab.description}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-4">
-            <MetricCard
-              label="Posts Triaged"
-              tone="text-slate-950"
-              value={`${impact.totalActions}`}
-            />
-            <MetricCard
-              label="Comments"
-              tone="text-slate-950"
-              value={`${post.numberOfComments}`}
-            />
-            <MetricCard
-              label="Author"
-              tone="text-slate-950"
-              value={`u/${post.authorName}`}
-            />
-            <MetricCard
-              label="Auto-Triage"
-              tone="text-amber-700"
-              value={automationReadiness}
-            />
-            <MetricCard
-              label="Decision"
-              tone={
-                analysis.decision === 'remove'
-                  ? 'text-rose-700'
-                  : analysis.decision === 'review'
-                    ? 'text-amber-700'
-                    : 'text-emerald-700'
-              }
-              value={analysis.decision}
-            />
-          </div>
+          {activeTab === 'overview' ? (
+            <>
+              <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-5">
+                <MetricCard label="Reports" tone="text-slate-950" value={`${post.numberOfReports}`} />
+                <MetricCard label="Score" tone="text-slate-950" value={`${post.score}`} />
+                <MetricCard
+                  label="Moderator Time Saved"
+                  tone="text-emerald-700"
+                  value={formatTimeSaved(impact.estimatedMinutesSaved || timeSavedMinutes)}
+                />
+                <MetricCard
+                  label="Scams Intercepted"
+                  tone="text-rose-700"
+                  value={`${impact.highRiskIntercepts}`}
+                />
+                <MetricCard
+                  label="Auto-Triage"
+                  tone="text-amber-700"
+                  value={automationReadiness}
+                />
+              </div>
 
-          <div className="mt-8 rounded-[30px] border border-slate-200 bg-slate-950 p-6 text-white">
+              <div className="mt-4 grid gap-4 md:grid-cols-4 xl:grid-cols-5">
+                <MetricCard
+                  label="Posts Triaged"
+                  tone="text-slate-950"
+                  value={`${impact.totalActions}`}
+                />
+                <MetricCard
+                  label="Comments"
+                  tone="text-slate-950"
+                  value={`${post.numberOfComments}`}
+                />
+                <MetricCard
+                  label="Author"
+                  tone="text-slate-950"
+                  value={`u/${post.authorName}`}
+                />
+                <MetricCard
+                  label="Decision"
+                  tone={
+                    analysis.decision === 'remove'
+                      ? 'text-rose-700'
+                      : analysis.decision === 'review'
+                        ? 'text-amber-700'
+                        : 'text-emerald-700'
+                  }
+                  value={analysis.decision}
+                />
+                <MetricCard
+                  label="Queue"
+                  tone="text-slate-950"
+                  value={analysis.caseFile.queuePriority}
+                />
+              </div>
+
+              <div className="mt-8 rounded-[30px] border border-slate-200 bg-slate-950 p-6 text-white">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
@@ -664,9 +725,9 @@ export const App = () => {
                 value={`${impact.scenarioSwitches}`}
               />
             </div>
-          </div>
+              </div>
 
-          <div className="mt-8 rounded-[30px] border border-slate-200 bg-[#fff7ed] p-6">
+              <div className="mt-8 rounded-[30px] border border-slate-200 bg-[#fff7ed] p-6">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
@@ -689,9 +750,9 @@ export const App = () => {
                 />
               ))}
             </div>
-          </div>
+              </div>
 
-          <div className="mt-8 rounded-[30px] border border-slate-200 bg-[#f8fafc] p-6">
+              <div className="mt-8 rounded-[30px] border border-slate-200 bg-[#f8fafc] p-6">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
@@ -752,9 +813,12 @@ export const App = () => {
                 ))}
               </div>
             </div>
-          </div>
+              </div>
+            </>
+          ) : null}
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          {activeTab === 'controls' ? (
+            <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
             <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfe_100%)] p-6 shadow-[0_16px_45px_rgba(15,23,42,0.06)]">
               <div className="mb-6 rounded-[24px] bg-slate-950 p-5 text-white">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
@@ -980,6 +1044,38 @@ export const App = () => {
             </section>
 
             <section className="space-y-6">
+              <div className="rounded-[30px] border border-slate-200 bg-[#f7f3ff] p-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                  Why This Tab Exists
+                </p>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  This section groups everything a moderator actually controls: policy profile,
+                  demo/live target selection, post review, reply draft, and the action center.
+                  It reduces the long scroll path during demos and makes the workflow feel more
+                  like a purposeful operations tool.
+                </p>
+              </div>
+
+              <div className="rounded-[30px] border border-slate-200 bg-white p-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                  Quick Facts
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <MetricCard label="Policy" tone="text-slate-950" value={activePolicyProfile.label} />
+                  <MetricCard
+                    label="Mode"
+                    tone="text-slate-950"
+                    value={mode === 'live-target' ? 'Live post' : 'Seeded demo'}
+                  />
+                </div>
+              </div>
+            </section>
+          </div>
+          ) : null}
+
+          {activeTab === 'activity' ? (
+            <div className="mt-8 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+            <section className="space-y-6">
               <div className="rounded-[30px] border border-slate-200 bg-[#f4f9f3] p-6">
                 <div className="flex items-center justify-between gap-4">
                   <div>
@@ -1037,7 +1133,9 @@ export const App = () => {
                   </div>
                 )}
               </div>
+            </section>
 
+            <section className="space-y-6">
               <div className="rounded-[30px] border border-slate-200 bg-white p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
                   Heuristic Signals
@@ -1079,6 +1177,7 @@ export const App = () => {
               </div>
             </section>
           </div>
+          ) : null}
         </div>
       </div>
     </div>
