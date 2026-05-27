@@ -8,9 +8,6 @@ import type {
   ModerationAction,
   ModerationActivityItem,
   ModerationDecision,
-  ModerationQueuePriority,
-  ModerationRiskDimension,
-  ModerationPolicySimulation,
   ModerationScenario,
   ModerationSignal,
 } from '../shared/api';
@@ -90,6 +87,8 @@ type ConsoleTabId = 'overview' | 'controls' | 'activity';
 
 type ControlsTabId = 'setup' | 'post' | 'reply';
 
+type DetailDialogMode = 'workspace' | 'impact' | 'policy' | 'casefile';
+
 const consoleTabs: Array<{
   accent: string;
   description: string;
@@ -157,64 +156,6 @@ const controlsTabs: Array<{
     description: 'Moderator comment and one-click actions',
   },
 ];
-
-const WorkspaceSectionButton = ({
-  accent,
-  active,
-  description,
-  kicker,
-  label,
-  meta,
-  onClick,
-}: {
-  accent: string;
-  active: boolean;
-  description: string;
-  kicker: string;
-  label: string;
-  meta: string;
-  onClick: () => void;
-}) => (
-  <button
-    className={`group relative overflow-hidden rounded-[24px] border px-4 py-4 text-left transition ${
-      active
-        ? 'border-white bg-white text-slate-950 shadow-[0_18px_45px_rgba(255,255,255,0.14)]'
-        : 'border-white/10 bg-white/6 text-white hover:bg-white/10'
-    }`}
-    onClick={onClick}
-  >
-    <div className={`absolute inset-0 bg-gradient-to-br ${accent} ${active ? 'opacity-100' : 'opacity-70'} transition`} />
-    <div className="relative">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${active ? 'text-slate-500' : 'text-slate-300'}`}>
-            {kicker}
-          </p>
-          <p className="mt-2 text-base font-semibold">{label}</p>
-        </div>
-        <span
-          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
-            active ? 'bg-slate-950 text-white' : 'bg-white/10 text-slate-100'
-          }`}
-        >
-          Open
-        </span>
-      </div>
-      <p className={`mt-3 max-w-xs text-xs leading-5 ${active ? 'text-slate-600' : 'text-slate-300'}`}>
-        {description}
-      </p>
-      <div className="mt-3">
-        <span
-          className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
-            active ? 'border-slate-200 bg-slate-100 text-slate-600' : 'border-white/10 bg-white/8 text-slate-200'
-          }`}
-        >
-          {meta}
-        </span>
-      </div>
-    </div>
-  </button>
-);
 
 const SidebarNavButton = ({
   active,
@@ -412,57 +353,6 @@ const ActivityRow = ({ item }: { item: ModerationActivityItem }) => (
   </li>
 );
 
-const PolicySimulationCard = ({
-  active,
-  simulation,
-}: {
-  active: boolean;
-  simulation: ModerationPolicySimulation;
-}) => (
-  <div
-    className={`rounded-[24px] border p-5 ${
-      active
-        ? 'border-slate-950 bg-slate-950 text-white'
-        : 'border-slate-200 bg-white text-slate-900'
-    }`}
-  >
-    <div className="flex items-center justify-between gap-3">
-      <p className="text-sm font-semibold">{simulation.policyProfile.label}</p>
-      <span
-        className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
-          active ? 'bg-white text-slate-950' : decisionTone(simulation.decision)
-        }`}
-      >
-        {simulation.decision}
-      </span>
-    </div>
-    <div className="mt-3 flex flex-wrap gap-2">
-      <span
-        className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${
-          active ? 'border-slate-700 text-slate-200' : 'border-slate-200 text-slate-600'
-        }`}
-      >
-        {simulation.category}
-      </span>
-      <span
-        className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${
-          active ? 'border-slate-700 text-slate-200' : 'border-slate-200 text-slate-600'
-        }`}
-      >
-        {simulation.confidence}% confidence
-      </span>
-      {active ? (
-        <span className="rounded-full bg-amber-300 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-950">
-          Active
-        </span>
-      ) : null}
-    </div>
-    <p className={`mt-3 text-sm leading-6 ${active ? 'text-slate-300' : 'text-slate-600'}`}>
-      {simulation.reason}
-    </p>
-  </div>
-);
-
 const handoffStatusTone = (decision: ModerationDecision): string => {
   switch (decision) {
     case 'remove':
@@ -473,35 +363,6 @@ const handoffStatusTone = (decision: ModerationDecision): string => {
       return 'text-emerald-700';
   }
 };
-
-const queuePriorityTone = (priority: ModerationQueuePriority): string => {
-  switch (priority) {
-    case 'critical':
-      return 'bg-rose-600 text-white';
-    case 'high':
-      return 'bg-amber-500 text-white';
-    case 'medium':
-      return 'bg-sky-600 text-white';
-    case 'low':
-      return 'bg-emerald-600 text-white';
-  }
-};
-
-const RiskDimensionCard = ({ dimension }: { dimension: ModerationRiskDimension }) => (
-  <div className="rounded-[22px] border border-slate-200 bg-white p-4">
-    <div className="flex items-center justify-between gap-3">
-      <p className="text-sm font-semibold text-slate-900">{dimension.label}</p>
-      <span className="text-sm font-semibold text-slate-900">{dimension.score}/100</span>
-    </div>
-    <div className="mt-3 h-2 rounded-full bg-slate-100">
-      <div
-        className="h-2 rounded-full bg-slate-950"
-        style={{ width: `${dimension.score}%` }}
-      />
-    </div>
-    <p className="mt-3 text-sm leading-6 text-slate-600">{dimension.summary}</p>
-  </div>
-);
 
 export const App = () => {
   const {
@@ -518,8 +379,8 @@ export const App = () => {
   const [targetPostInput, setTargetPostInput] = useState('');
   const [activeTab, setActiveTab] = useState<ConsoleTabId>('overview');
   const [activeControlsTab, setActiveControlsTab] = useState<ControlsTabId>('reply');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [detailDialogMode, setDetailDialogMode] = useState<DetailDialogMode | null>(null);
 
   if (loading) {
     return (
@@ -626,48 +487,70 @@ export const App = () => {
       : activeControlsTab === 'post'
         ? `${post.numberOfReports} reports`
         : `${secondaryActions.length + 1} actions`;
-  const dialogTitle =
-    activeTab === 'overview'
-      ? 'Overview workspace'
-      : activeTab === 'controls'
-        ? `Controls workspace: ${activeControlsSection.label}`
-        : 'Activity workspace';
-  const dialogSummary =
-    activeTab === 'overview'
-      ? 'Keep the main decision, impact, and case file visible without forcing the moderator to parse every supporting detail at once.'
-      : activeTab === 'controls'
-        ? 'Use the sidebar to jump between setup, post context, and reply flow, then open this guide only when you need the extra rationale.'
-        : 'Treat activity as the audit trail and moderator handoff lane, not as the main action surface.';
-  const dialogBullets =
-    activeTab === 'overview'
-      ? [
-          'The hero carries the decision, confidence, and top reasons first so judges understand the product in one glance.',
-          'Impact and policy cards stay below the fold because they support the story rather than lead it.',
-          'The case file remains visible in the main lane so moderators can explain the recommendation fast.',
-        ]
-      : activeTab === 'controls'
-        ? activeControlsTab === 'setup'
-          ? [
-              'Setup is only for policy switching, live post linking, and demo scenario selection.',
-              'Nothing here should block the moderator from reaching the action flow quickly.',
-              'Use this lane when changing context, then move back out once the target is ready.',
-            ]
-          : activeControlsTab === 'post'
-            ? [
-                'Post view isolates the source text and metadata so the moderator can verify context without distractions.',
-                'This lane is intentionally narrow in scope: read, confirm, and return to action.',
-                'Open Reddit only when the inline snapshot is not enough.',
-              ]
-            : [
-                'Reply and action are grouped so the moderator can edit the comment and act in the same visual zone.',
-                'The recommendation stays visible while the draft is edited so confidence does not feel disconnected from the action.',
-                'Use the quick actions for speed, not for explanation; the reply text is the explanation surface.',
-              ]
-        : [
-            'Activity is the moderator memory lane: recent actions, signals, and the handoff summary.',
-            'This workspace should feel calm and readable because it is reviewed after the action, not before it.',
-            'Use it to explain continuity and auditability in the demo.',
-          ];
+  const detailDialog =
+    detailDialogMode === 'workspace'
+      ? {
+          bullets:
+            activeTab === 'overview'
+              ? [
+                  'The hero holds only the verdict, confidence, and top reasons so the moderator is not forced through secondary analytics first.',
+                  'Impact, policy, and case file are summarized inline and opened in a dialog only when deeper explanation is needed.',
+                  'This keeps the main lane readable while still preserving the richer demo story.',
+                ]
+              : activeTab === 'controls'
+                ? [
+                    'Use the sidebar to move between setup, post context, and reply workflow without stacking those lanes together.',
+                    'The main panel should feel like one job at a time: configure, inspect, or act.',
+                    'Extra rationale belongs in this popup, not in another dense explainer block.',
+                  ]
+                : [
+                    'Activity is the continuity lane: handoff, audit trail, and heuristic trace.',
+                    'It is intentionally separated from the decision lane so the moderator does not feel flooded by after-the-fact context.',
+                    'Use it in the demo to show accountability, not to drive the first action.',
+                  ],
+          summary:
+            activeTab === 'overview'
+              ? 'This workspace is intentionally condensed so the decision is clear before the supporting detail is explored.'
+              : activeTab === 'controls'
+                ? 'This workspace is organized around the moderator flow, not around raw data volume.'
+                : 'This workspace keeps the operational memory of the case without crowding the action surface.',
+          title:
+            activeTab === 'overview'
+              ? 'Overview workspace'
+              : activeTab === 'controls'
+                ? `Controls workspace: ${activeControlsSection.label}`
+                : 'Activity workspace',
+        }
+      : detailDialogMode === 'impact'
+        ? {
+            bullets: [
+              `Moderator time saved: ${formatTimeSaved(impact.estimatedMinutesSaved)}.`,
+              `Posts triaged: ${impact.totalActions}; high-risk intercepts: ${impact.highRiskIntercepts}.`,
+              `Approvals: ${impact.approvals}, removals: ${impact.removals}, reviews: ${impact.reviews}, live links: ${impact.liveLinks}.`,
+            ],
+            summary: 'Analytics are summarized in one card here so they do not stretch the main page vertically.',
+            title: 'Impact analytics',
+          }
+        : detailDialogMode === 'policy'
+          ? {
+              bullets: policySimulations.map(
+                (simulation) =>
+                  `${simulation.policyProfile.label}: ${simulation.decision.toUpperCase()} at ${simulation.confidence}% confidence. ${simulation.reason}`
+              ),
+              summary: 'Policy comparisons stay behind a dialog so moderators can inspect differences without carrying all profiles inline.',
+              title: 'Policy comparisons',
+            }
+          : detailDialogMode === 'casefile'
+            ? {
+                bullets: [
+                  `Recommended rule: ${analysis.caseFile.recommendedRule}.`,
+                  `Next step: ${analysis.caseFile.nextStep}.`,
+                  ...analysis.caseFile.evidenceSummary,
+                ],
+                summary: analysis.caseFile.moderatorBrief,
+                title: 'Moderator case file',
+              }
+            : null;
 
   return (
     <div className="mq-shell min-h-screen px-4 py-6 text-slate-900 sm:px-5 sm:py-8">
@@ -946,7 +829,7 @@ export const App = () => {
                     </div>
                     <button
                       className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-slate-800"
-                      onClick={() => setDetailDialogOpen(true)}
+                      onClick={() => setDetailDialogMode('workspace')}
                     >
                       Open quick guide
                     </button>
@@ -1010,155 +893,83 @@ export const App = () => {
                 />
               </div>
 
-              <div className="mt-8 rounded-[30px] border border-slate-200 bg-slate-950 p-6 text-white">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
-                  Ops Impact Center
-                </p>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
-                  Persistent usage analytics make the demo feel like a real moderator operations product, not a single-screen classifier.
-                </p>
-              </div>
-              <div className="text-sm text-slate-300">
-                Last updated{' '}
-                {impact.lastUpdatedAt
-                  ? new Date(impact.lastUpdatedAt).toLocaleString()
-                  : 'No actions recorded yet'}
-              </div>
-            </div>
-            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <MetricCard
-                label="Moderator Time Saved"
-                tone="text-emerald-700"
-                value={formatTimeSaved(impact.estimatedMinutesSaved)}
-              />
-              <MetricCard
-                label="Scams Intercepted"
-                tone="text-rose-700"
-                value={`${impact.highRiskIntercepts}`}
-              />
-              <MetricCard
-                label="Posts Triaged"
-                tone="text-slate-950"
-                value={`${impact.totalActions}`}
-              />
-              <MetricCard
-                label="Live Posts Linked"
-                tone="text-sky-700"
-                value={`${impact.liveLinks}`}
-              />
-            </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <MetricCard
-                label="Approvals"
-                tone="text-emerald-700"
-                value={`${impact.approvals}`}
-              />
-              <MetricCard
-                label="Removals"
-                tone="text-rose-700"
-                value={`${impact.removals}`}
-              />
-              <MetricCard
-                label="Reviews"
-                tone="text-amber-700"
-                value={`${impact.reviews}`}
-              />
-              <MetricCard
-                label="Scenario Switches"
-                tone="text-slate-950"
-                value={`${impact.scenarioSwitches}`}
-              />
-            </div>
-              </div>
-
-              <div className="mt-8 rounded-[30px] border border-slate-200 bg-[#fff7ed] p-6">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  Policy Stress Test
-                </p>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                  One post, multiple subreddit moderation styles, and transparent changes in the recommendation for a stronger live demo.
-                </p>
-              </div>
-              <div className="rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
-                {policySimulations.length} profiles compared
-              </div>
-            </div>
-            <div className="mt-5 grid gap-4 xl:grid-cols-3">
-              {policySimulations.map((simulation) => (
-                <PolicySimulationCard
-                  key={simulation.policyProfile.id}
-                  active={simulation.policyProfile.id === activePolicyProfile.id}
-                  simulation={simulation}
-                />
-              ))}
-            </div>
-              </div>
-
-              <div className="mt-8 rounded-[30px] border border-slate-200 bg-[#f8fafc] p-6">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  Moderator Case File
-                </p>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                  Converts the heuristic result into a moderation-ready brief with queue priority, likely rule fit, and risk dimensions.
-                </p>
-              </div>
-              <div
-                className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] ${queuePriorityTone(analysis.caseFile.queuePriority)}`}
-              >
-                {analysis.caseFile.queuePriority} priority
-              </div>
-            </div>
-            <div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-              <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                  Moderator Brief
-                </p>
-                <p className="mt-3 text-sm leading-7 text-slate-700">
-                  {analysis.caseFile.moderatorBrief}
-                </p>
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-2xl bg-slate-50 px-4 py-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                      Recommended Rule
+              <div className="mt-8 grid gap-4 xl:grid-cols-3">
+                <div className="rounded-[28px] border border-slate-200 bg-slate-950 p-5 text-white shadow-[0_16px_45px_rgba(15,23,42,0.12)]">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                      Analytics snapshot
                     </p>
-                    <p className="mt-2 text-sm font-semibold text-slate-900">
-                      {analysis.caseFile.recommendedRule}
-                    </p>
+                    <button
+                      className="rounded-full bg-white/10 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white"
+                      onClick={() => setDetailDialogMode('impact')}
+                    >
+                      Open details
+                    </button>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 px-4 py-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                      Next Step
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                    <div className="rounded-[20px] bg-white/6 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Time saved</p>
+                      <p className="mt-2 text-2xl font-semibold text-white">{formatTimeSaved(impact.estimatedMinutesSaved)}</p>
+                    </div>
+                    <div className="rounded-[20px] bg-white/6 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Posts triaged</p>
+                      <p className="mt-2 text-2xl font-semibold text-white">{impact.totalActions}</p>
+                    </div>
+                    <div className="rounded-[20px] bg-white/6 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Risk intercepts</p>
+                      <p className="mt-2 text-2xl font-semibold text-white">{impact.highRiskIntercepts}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[28px] border border-slate-200 bg-[#fff7ed] p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                      Policy comparison
                     </p>
-                    <p className="mt-2 text-sm font-semibold text-slate-900">
-                      {analysis.caseFile.nextStep}
+                    <button
+                      className="rounded-full bg-white px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-700"
+                      onClick={() => setDetailDialogMode('policy')}
+                    >
+                      Open details
+                    </button>
+                  </div>
+                  <div className="mt-4 rounded-[20px] bg-white px-4 py-4">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Active profile</p>
+                    <p className="mt-2 text-lg font-semibold text-slate-950">{activePolicyProfile.label}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {policySimulations.length} moderation styles are available, but the full comparison stays off the page until needed.
                     </p>
                   </div>
                 </div>
-                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Evidence Summary
-                  </p>
-                  <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
-                    {analysis.caseFile.evidenceSummary.map((item) => (
-                      <li key={item} className="rounded-xl bg-white px-3 py-2">
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
+
+                <div className="rounded-[28px] border border-slate-200 bg-[#f8fafc] p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                      Case file
+                    </p>
+                    <button
+                      className="rounded-full bg-slate-950 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white"
+                      onClick={() => setDetailDialogMode('casefile')}
+                    >
+                      Open details
+                    </button>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    <div className="rounded-[20px] bg-white px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Recommended rule</p>
+                      <p className="mt-2 text-sm font-semibold text-slate-950">{analysis.caseFile.recommendedRule}</p>
+                    </div>
+                    <div className="rounded-[20px] bg-white px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Next step</p>
+                      <p className="mt-2 text-sm font-semibold text-slate-950">{analysis.caseFile.nextStep}</p>
+                    </div>
+                    <div className="rounded-[20px] bg-white px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Evidence items</p>
+                      <p className="mt-2 text-sm font-semibold text-slate-950">{analysis.caseFile.evidenceSummary.length} key points</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="grid gap-4">
-                {analysis.caseFile.riskDimensions.map((dimension) => (
-                  <RiskDimensionCard key={dimension.label} dimension={dimension} />
-                ))}
-              </div>
-            </div>
               </div>
             </>
           ) : null}
@@ -1166,25 +977,6 @@ export const App = () => {
           {activeTab === 'controls' ? (
             <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
               <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfe_100%)] p-6 shadow-[0_16px_45px_rgba(15,23,42,0.06)]">
-                <div className="mb-6 rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#0f172a_0%,#172033_100%)] p-3 text-white shadow-[0_16px_45px_rgba(15,23,42,0.10)]">
-                  <div className="grid gap-2 md:grid-cols-3">
-                    {controlsTabs.map((tab) => {
-                      return (
-                        <WorkspaceSectionButton
-                          key={tab.id}
-                          accent={tab.accent}
-                          active={tab.id === activeControlsTab}
-                          description={tab.description}
-                          kicker={tab.kicker}
-                          label={tab.label}
-                          meta={tab.meta}
-                          onClick={() => setActiveControlsTab(tab.id)}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-
                 <div className="mb-6 rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbff_100%)] px-5 py-5">
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
@@ -1566,12 +1358,12 @@ export const App = () => {
             </div>
           </div>
 
-          {detailDialogOpen ? (
+          {detailDialog ? (
             <DetailDialog
-              bullets={dialogBullets}
-              onClose={() => setDetailDialogOpen(false)}
-              summary={dialogSummary}
-              title={dialogTitle}
+              bullets={detailDialog.bullets}
+              onClose={() => setDetailDialogMode(null)}
+              summary={detailDialog.summary}
+              title={detailDialog.title}
             />
           ) : null}
         </div>
