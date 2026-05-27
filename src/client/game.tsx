@@ -216,6 +216,90 @@ const WorkspaceSectionButton = ({
   </button>
 );
 
+const SidebarNavButton = ({
+  active,
+  badge,
+  collapsed,
+  description,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  badge: string;
+  collapsed: boolean;
+  description: string;
+  label: string;
+  onClick: () => void;
+}) => (
+  <button
+    className={`w-full rounded-[20px] border px-3 py-3 text-left transition ${
+      active
+        ? 'border-slate-900 bg-slate-900 text-white shadow-[0_16px_35px_rgba(15,23,42,0.18)]'
+        : 'border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50'
+    }`}
+    onClick={onClick}
+  >
+    <div className={`flex items-start ${collapsed ? 'justify-center' : 'justify-between'} gap-2`}>
+      <div className={collapsed ? 'text-center' : ''}>
+        <p className="text-sm font-semibold">{collapsed ? label.slice(0, 1) : label}</p>
+        {!collapsed ? (
+          <p className={`mt-1 text-xs leading-5 ${active ? 'text-slate-300' : 'text-slate-500'}`}>
+            {description}
+          </p>
+        ) : null}
+      </div>
+      {!collapsed ? (
+        <span
+          className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${
+            active ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-600'
+          }`}
+        >
+          {badge}
+        </span>
+      ) : null}
+    </div>
+  </button>
+);
+
+const DetailDialog = ({
+  bullets,
+  onClose,
+  summary,
+  title,
+}: {
+  bullets: string[];
+  onClose: () => void;
+  summary: string;
+  title: string;
+}) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-sm">
+    <div className="w-full max-w-2xl rounded-[28px] border border-white/60 bg-white p-6 shadow-[0_32px_120px_rgba(15,23,42,0.18)]">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+            Workspace Guide
+          </p>
+          <h3 className="mt-2 text-2xl font-semibold text-slate-950">{title}</h3>
+          <p className="mt-3 text-sm leading-6 text-slate-600">{summary}</p>
+        </div>
+        <button
+          className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 transition hover:bg-slate-50"
+          onClick={onClose}
+        >
+          Close
+        </button>
+      </div>
+      <ul className="mt-5 space-y-3">
+        {bullets.map((bullet) => (
+          <li key={bullet} className="rounded-[18px] bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
+            {bullet}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+);
+
 const MetricCard = ({
   label,
   tone,
@@ -434,6 +518,8 @@ export const App = () => {
   const [targetPostInput, setTargetPostInput] = useState('');
   const [activeTab, setActiveTab] = useState<ConsoleTabId>('overview');
   const [activeControlsTab, setActiveControlsTab] = useState<ControlsTabId>('reply');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   if (loading) {
     return (
@@ -540,6 +626,48 @@ export const App = () => {
       : activeControlsTab === 'post'
         ? `${post.numberOfReports} reports`
         : `${secondaryActions.length + 1} actions`;
+  const dialogTitle =
+    activeTab === 'overview'
+      ? 'Overview workspace'
+      : activeTab === 'controls'
+        ? `Controls workspace: ${activeControlsSection.label}`
+        : 'Activity workspace';
+  const dialogSummary =
+    activeTab === 'overview'
+      ? 'Keep the main decision, impact, and case file visible without forcing the moderator to parse every supporting detail at once.'
+      : activeTab === 'controls'
+        ? 'Use the sidebar to jump between setup, post context, and reply flow, then open this guide only when you need the extra rationale.'
+        : 'Treat activity as the audit trail and moderator handoff lane, not as the main action surface.';
+  const dialogBullets =
+    activeTab === 'overview'
+      ? [
+          'The hero carries the decision, confidence, and top reasons first so judges understand the product in one glance.',
+          'Impact and policy cards stay below the fold because they support the story rather than lead it.',
+          'The case file remains visible in the main lane so moderators can explain the recommendation fast.',
+        ]
+      : activeTab === 'controls'
+        ? activeControlsTab === 'setup'
+          ? [
+              'Setup is only for policy switching, live post linking, and demo scenario selection.',
+              'Nothing here should block the moderator from reaching the action flow quickly.',
+              'Use this lane when changing context, then move back out once the target is ready.',
+            ]
+          : activeControlsTab === 'post'
+            ? [
+                'Post view isolates the source text and metadata so the moderator can verify context without distractions.',
+                'This lane is intentionally narrow in scope: read, confirm, and return to action.',
+                'Open Reddit only when the inline snapshot is not enough.',
+              ]
+            : [
+                'Reply and action are grouped so the moderator can edit the comment and act in the same visual zone.',
+                'The recommendation stays visible while the draft is edited so confidence does not feel disconnected from the action.',
+                'Use the quick actions for speed, not for explanation; the reply text is the explanation surface.',
+              ]
+        : [
+            'Activity is the moderator memory lane: recent actions, signals, and the handoff summary.',
+            'This workspace should feel calm and readable because it is reviewed after the action, not before it.',
+            'Use it to explain continuity and auditability in the demo.',
+          ];
 
   return (
     <div className="mq-shell min-h-screen px-4 py-6 text-slate-900 sm:px-5 sm:py-8">
@@ -737,43 +865,94 @@ export const App = () => {
             </div>
           </div>
 
-          <div className="mt-8 rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(30,41,59,0.96))] p-3 shadow-[0_18px_50px_rgba(15,23,42,0.14)]">
-            <div className="grid gap-2 md:grid-cols-3">
-              {consoleTabs.map((tab) => {
-                return (
-                  <WorkspaceSectionButton
+          <div className="mt-8 grid gap-6 xl:grid-cols-[auto_minmax(0,1fr)] xl:items-start">
+            <aside
+              className={`rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-3 shadow-[0_16px_40px_rgba(15,23,42,0.06)] transition-all ${
+                sidebarCollapsed ? 'xl:w-[92px]' : 'xl:w-[290px]'
+              }`}
+            >
+              <div className={`mb-3 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} gap-3`}>
+                {!sidebarCollapsed ? (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+                      Navigation
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-slate-950">Moderator workspace</p>
+                  </div>
+                ) : null}
+                <button
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  onClick={() => setSidebarCollapsed((value) => !value)}
+                >
+                  {sidebarCollapsed ? '>' : '<'}
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {consoleTabs.map((tab) => (
+                  <SidebarNavButton
                     key={tab.id}
-                    accent={tab.accent}
                     active={tab.id === activeTab}
-                    description={tab.description}
-                    kicker={tab.kicker}
+                    badge={tab.id === 'overview' ? `${policySimulations.length}` : tab.id === 'controls' ? `${controlsTabs.length}` : `${recentActivity.length}`}
+                    collapsed={sidebarCollapsed}
+                    description={tab.meta}
                     label={tab.label}
-                    meta={tab.meta}
                     onClick={() => setActiveTab(tab.id)}
                   />
-                );
-              })}
-            </div>
-          </div>
+                ))}
+              </div>
 
-          <div className="mt-5 rounded-[28px] border border-slate-200 bg-[linear-gradient(135deg,rgba(255,255,255,0.95),rgba(247,242,234,0.84))] px-5 py-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  {activeWorkspaceSection.kicker}
-                </p>
-                <h3 className="mt-2 text-2xl font-semibold text-slate-950">
-                  {activeWorkspaceSection.label}
-                </h3>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                  {activeWorkspaceSection.description}
-                </p>
+              {activeTab === 'controls' ? (
+                <div className="mt-3 border-t border-slate-200 pt-3">
+                  {!sidebarCollapsed ? (
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                      Controls lanes
+                    </p>
+                  ) : null}
+                  <div className="space-y-2">
+                    {controlsTabs.map((tab) => (
+                      <SidebarNavButton
+                        key={tab.id}
+                        active={tab.id === activeControlsTab}
+                        badge={tab.id === 'setup' ? `${policyProfiles.length}` : tab.id === 'post' ? `${post.numberOfReports}` : `${secondaryActions.length + 1}`}
+                        collapsed={sidebarCollapsed}
+                        description={tab.meta}
+                        label={tab.label}
+                        onClick={() => setActiveControlsTab(tab.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </aside>
+
+            <div className="min-w-0">
+              <div className="rounded-[28px] border border-slate-200 bg-[linear-gradient(135deg,rgba(255,255,255,0.95),rgba(247,242,234,0.84))] px-5 py-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+                      {activeWorkspaceSection.kicker}
+                    </p>
+                    <h3 className="mt-2 text-2xl font-semibold text-slate-950">
+                      {activeWorkspaceSection.label}
+                    </h3>
+                    <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                      {activeWorkspaceSection.description}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
+                      {workspaceBadge}
+                    </div>
+                    <button
+                      className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-slate-800"
+                      onClick={() => setDetailDialogOpen(true)}
+                    >
+                      Open quick guide
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
-                {workspaceBadge}
-              </div>
-            </div>
-          </div>
 
           {activeTab === 'overview' ? (
             <>
@@ -1261,18 +1440,6 @@ export const App = () => {
               </section>
 
               <section className="space-y-6">
-                <div className="rounded-[30px] border border-slate-200 bg-[#f7f3ff] p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                    Why This Tab Exists
-                  </p>
-                  <p className="mt-3 text-sm leading-7 text-slate-600">
-                    This section groups everything a moderator actually controls: policy profile,
-                    demo/live target selection, post review, reply draft, and the action center.
-                    It reduces the long scroll path during demos and makes the workflow feel more
-                    like a purposeful operations tool.
-                  </p>
-                </div>
-
                 <div className="rounded-[30px] border border-slate-200 bg-white p-6">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
                     Quick Facts
@@ -1394,6 +1561,18 @@ export const App = () => {
               </div>
             </section>
           </div>
+          ) : null}
+
+            </div>
+          </div>
+
+          {detailDialogOpen ? (
+            <DetailDialog
+              bullets={dialogBullets}
+              onClose={() => setDetailDialogOpen(false)}
+              summary={dialogSummary}
+              title={dialogTitle}
+            />
           ) : null}
         </div>
       </div>
