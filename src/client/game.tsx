@@ -64,6 +64,18 @@ const recommendedActionLabel = (decision: ModerationDecision): string => {
 const formatTimeSaved = (minutes: number): string =>
   minutes >= 60 ? `${(minutes / 60).toFixed(1)} hrs` : `${minutes} min`;
 
+const isImagePostUrl = (url: string): boolean => {
+  const normalizedUrl = url.trim().toLowerCase();
+
+  if (!normalizedUrl) {
+    return false;
+  }
+
+  return /\.(?:png|jpe?g|gif|webp)(?:\?|$)/i.test(normalizedUrl)
+    || normalizedUrl.includes('i.redd.it/')
+    || normalizedUrl.includes('preview.redd.it/');
+};
+
 const statusLabel = (active: boolean, label: string) => (
   <span
     className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
@@ -393,6 +405,7 @@ export const App = () => {
   const secondaryStatusActions = (['approve', 'remove', 'review'] as ModerationDecision[]).filter(
     (action) => action !== primaryAction
   );
+  const showPostImage = isImagePostUrl(post.url);
   const timeSavedMinutes =
     mode === 'live-target'
       ? 9
@@ -1106,6 +1119,15 @@ export const App = () => {
                             : 'Live Reddit post selected from the moderator menu'}
                         </span>
                       </div>
+                      {showPostImage ? (
+                        <div className="mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[inset_0_0_0_1px_rgba(148,163,184,0.15)]">
+                          <img
+                            alt={post.title}
+                            className="max-h-[420px] w-full object-cover"
+                            src={post.url}
+                          />
+                        </div>
+                      ) : null}
                       <p className="mt-4 whitespace-pre-wrap rounded-[20px] bg-white px-4 py-4 text-sm leading-7 text-slate-700 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.15)]">
                         {post.body}
                       </p>
