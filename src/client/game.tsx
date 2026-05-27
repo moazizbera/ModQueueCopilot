@@ -91,48 +91,111 @@ type ConsoleTabId = 'overview' | 'controls' | 'activity';
 type ControlsTabId = 'setup' | 'post' | 'reply';
 
 const consoleTabs: Array<{
+  accent: string;
   description: string;
   id: ConsoleTabId;
   label: string;
+  kicker: string;
 }> = [
   {
+    accent: 'from-sky-400/20 via-cyan-300/10 to-transparent',
     id: 'overview',
+    kicker: 'Workspace 01',
     label: 'Overview',
     description: 'Verdict, impact, and case file',
   },
   {
+    accent: 'from-amber-300/20 via-orange-200/10 to-transparent',
     id: 'controls',
+    kicker: 'Workspace 02',
     label: 'Controls',
     description: 'Policy, scenarios, and action center',
   },
   {
+    accent: 'from-emerald-300/20 via-teal-200/10 to-transparent',
     id: 'activity',
+    kicker: 'Workspace 03',
     label: 'Activity',
     description: 'Handoff, queue trail, and signals',
   },
 ];
 
 const controlsTabs: Array<{
+  accent: string;
   description: string;
   id: ControlsTabId;
   label: string;
+  kicker: string;
 }> = [
   {
+    accent: 'from-sky-400/18 via-cyan-300/8 to-transparent',
     id: 'setup',
+    kicker: 'Setup Lane',
     label: 'Setup',
     description: 'Policy, linking, and demo scenarios',
   },
   {
+    accent: 'from-violet-400/18 via-fuchsia-300/8 to-transparent',
     id: 'post',
+    kicker: 'Review Lane',
     label: 'Post',
     description: 'Captured post snapshot and source info',
   },
   {
+    accent: 'from-amber-300/18 via-orange-200/8 to-transparent',
     id: 'reply',
+    kicker: 'Action Lane',
     label: 'Reply & Action',
     description: 'Moderator comment and one-click actions',
   },
 ];
+
+const WorkspaceSectionButton = ({
+  accent,
+  active,
+  description,
+  kicker,
+  label,
+  onClick,
+}: {
+  accent: string;
+  active: boolean;
+  description: string;
+  kicker: string;
+  label: string;
+  onClick: () => void;
+}) => (
+  <button
+    className={`group relative overflow-hidden rounded-[24px] border px-4 py-4 text-left transition ${
+      active
+        ? 'border-white bg-white text-slate-950 shadow-[0_18px_45px_rgba(255,255,255,0.14)]'
+        : 'border-white/10 bg-white/6 text-white hover:bg-white/10'
+    }`}
+    onClick={onClick}
+  >
+    <div className={`absolute inset-0 bg-gradient-to-br ${accent} ${active ? 'opacity-100' : 'opacity-70'} transition`} />
+    <div className="relative">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${active ? 'text-slate-500' : 'text-slate-300'}`}>
+            {kicker}
+          </p>
+          <p className="mt-2 text-base font-semibold">{label}</p>
+        </div>
+        <span
+          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+            active ? 'bg-slate-950 text-white' : 'bg-white/10 text-slate-100'
+          }`}
+        >
+          Open
+        </span>
+      </div>
+      <p className={`mt-3 max-w-xs text-xs leading-5 ${active ? 'text-slate-600' : 'text-slate-300'}`}>
+        {description}
+      </p>
+    </div>
+  </button>
+);
 
 const MetricCard = ({
   label,
@@ -440,6 +503,12 @@ export const App = () => {
   const verdictRisk = riskLevelLabel(analysis.decision, analysis.confidence);
   const verdictTitle = `${verdictRisk}: ${categoryLabel(analysis.category)} (${analysis.confidence}%)`;
   const topReasons = analysis.signals.slice(0, 3);
+  const activeWorkspaceSection =
+    consoleTabs.find((tab) => tab.id === activeTab) ??
+    consoleTabs[0]!;
+  const activeControlsSection =
+    controlsTabs.find((tab) => tab.id === activeControlsTab) ??
+    controlsTabs[0]!;
 
   return (
     <div className="mq-shell min-h-screen px-4 py-6 text-slate-900 sm:px-5 sm:py-8">
@@ -640,29 +709,37 @@ export const App = () => {
           <div className="mt-8 rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(30,41,59,0.96))] p-3 shadow-[0_18px_50px_rgba(15,23,42,0.14)]">
             <div className="grid gap-2 md:grid-cols-3">
               {consoleTabs.map((tab) => {
-                const active = tab.id === activeTab;
-
                 return (
-                  <button
+                  <WorkspaceSectionButton
                     key={tab.id}
-                    className={`rounded-[22px] border px-4 py-4 text-left transition ${
-                      active
-                        ? 'border-white bg-white text-slate-950 shadow-[0_12px_30px_rgba(255,255,255,0.14)]'
-                        : 'border-white/10 bg-white/6 text-white hover:bg-white/10'
-                    }`}
+                    accent={tab.accent}
+                    active={tab.id === activeTab}
+                    description={tab.description}
+                    kicker={tab.kicker}
+                    label={tab.label}
                     onClick={() => setActiveTab(tab.id)}
-                  >
-                    <p className="text-sm font-semibold">{tab.label}</p>
-                    <p
-                      className={`mt-2 text-xs leading-5 ${
-                        active ? 'text-slate-600' : 'text-slate-300'
-                      }`}
-                    >
-                      {tab.description}
-                    </p>
-                  </button>
+                  />
                 );
               })}
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-[28px] border border-slate-200 bg-[linear-gradient(135deg,rgba(255,255,255,0.95),rgba(247,242,234,0.84))] px-5 py-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  {activeWorkspaceSection.kicker}
+                </p>
+                <h3 className="mt-2 text-2xl font-semibold text-slate-950">
+                  {activeWorkspaceSection.label}
+                </h3>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                  {activeWorkspaceSection.description}
+                </p>
+              </div>
+              <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
+                Moderation workspace
+              </div>
             </div>
           </div>
 
@@ -881,29 +958,37 @@ export const App = () => {
                 <div className="mb-6 rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#0f172a_0%,#172033_100%)] p-3 text-white shadow-[0_16px_45px_rgba(15,23,42,0.10)]">
                   <div className="grid gap-2 md:grid-cols-3">
                     {controlsTabs.map((tab) => {
-                      const active = tab.id === activeControlsTab;
-
                       return (
-                        <button
+                        <WorkspaceSectionButton
                           key={tab.id}
-                          className={`rounded-[20px] border px-4 py-4 text-left transition ${
-                            active
-                              ? 'border-white bg-white text-slate-950'
-                              : 'border-white/10 bg-white/6 text-white hover:bg-white/10'
-                          }`}
+                          accent={tab.accent}
+                          active={tab.id === activeControlsTab}
+                          description={tab.description}
+                          kicker={tab.kicker}
+                          label={tab.label}
                           onClick={() => setActiveControlsTab(tab.id)}
-                        >
-                          <p className="text-sm font-semibold">{tab.label}</p>
-                          <p
-                            className={`mt-2 text-xs leading-5 ${
-                              active ? 'text-slate-600' : 'text-slate-300'
-                            }`}
-                          >
-                            {tab.description}
-                          </p>
-                        </button>
+                        />
                       );
                     })}
+                  </div>
+                </div>
+
+                <div className="mb-6 rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbff_100%)] px-5 py-5">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        {activeControlsSection.kicker}
+                      </p>
+                      <h4 className="mt-2 text-xl font-semibold text-slate-950">
+                        {activeControlsSection.label}
+                      </h4>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                        {activeControlsSection.description}
+                      </p>
+                    </div>
+                    <div className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+                      Moderator lane
+                    </div>
                   </div>
                 </div>
 
