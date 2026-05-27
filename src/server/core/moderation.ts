@@ -1103,10 +1103,20 @@ const createAnalysis = (
   }
 
   const { category, margin, topScore } = chooseCategory(scores);
-  const confidence =
+  const strongSignalCount = signals.filter((signal) => signal.weight >= 10).length;
+  const baseConfidence =
     category === 'UNKNOWN'
       ? clamp(38 + topScore * 2, 38, 72)
       : clamp(52 + topScore * 2 + margin * 3, 52, 98);
+  const confidence =
+    category === 'PROMOTION' &&
+    reportCount === 0 &&
+    !hasEarningsClaim &&
+    !hasContactRouting &&
+    !hasInvestmentScamLanguage &&
+    strongSignalCount <= 1
+      ? Math.min(baseConfidence, urlCount > 0 ? 79 : 72)
+      : baseConfidence;
   const decision = chooseDecision(
     category,
     confidence,
