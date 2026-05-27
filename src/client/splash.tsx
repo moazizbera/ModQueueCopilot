@@ -306,17 +306,22 @@ export const Splash = () => {
               ) : null}
 
               {activeTab === 'actions' ? (
-                <div className="mt-4 space-y-4">
-                  <div className="rounded-3xl border border-white/10 bg-black/20 px-4 py-4 text-sm leading-6 text-slate-200">
-                    {dashboard.mode === 'live-target'
-                      ? `Live moderation is armed for r/${dashboard.post.subredditName}.`
-                      : `Demo mode is active. Launch from a post menu for one-tap live moderation in r/${dashboard.post.subredditName}.`}
+                <div className="mt-4 space-y-3">
+                  <div className="flex flex-wrap items-center gap-2 rounded-[22px] border border-white/10 bg-black/20 px-3 py-3 text-[11px] font-medium leading-5 text-slate-200">
+                    <span className="rounded-full bg-white/10 px-2.5 py-1 font-semibold uppercase tracking-[0.18em] text-slate-100">
+                      {dashboard.mode === 'live-target' ? 'Live' : 'Demo'}
+                    </span>
+                    <span>
+                      {dashboard.mode === 'live-target'
+                        ? `Ready in r/${dashboard.post.subredditName}`
+                        : `Use post menu for one-tap live moderation`}
+                    </span>
                   </div>
 
                   {primaryAction ? (
-                    <div>
+                    <div className="rounded-[24px] border border-white/10 bg-white/6 p-3">
                       <button
-                        className={`flex h-12 w-full items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(primaryAction, true)}`}
+                        className={`flex h-11 w-full items-center justify-center rounded-[18px] px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(primaryAction, true)}`}
                         onClick={() => void runAction(primaryAction)}
                         disabled={submittingAction !== null}
                       >
@@ -326,7 +331,7 @@ export const Splash = () => {
                         {secondaryActions.map((action) => (
                           <button
                             key={action}
-                            className={`flex h-11 items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(action, false)}`}
+                            className={`flex h-10 items-center justify-center rounded-[16px] px-3 text-xs font-semibold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(action, false)}`}
                             onClick={() => void runAction(action)}
                             disabled={submittingAction !== null}
                           >
