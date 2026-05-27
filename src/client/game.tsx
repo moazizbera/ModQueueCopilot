@@ -976,6 +976,33 @@ export const App = () => {
                   <>
                     <div className="mb-6 rounded-[24px] bg-slate-950 p-5 text-white">
                       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                        Analyze Reddit Post
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">
+                        Paste a Reddit post URL or bare post ID to analyze it directly in this console. Launching from a post menu is optional, not required.
+                      </p>
+                      <div className="mt-4 flex flex-col gap-3 md:flex-row">
+                        <input
+                          className="min-w-0 flex-1 rounded-[22px] border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-slate-500"
+                          placeholder="https://reddit.com/r/modqueue_copilot_dev/comments/... or abc123"
+                          value={targetPostInput}
+                          onChange={(event) => setTargetPostInput(event.target.value)}
+                        />
+                        <button
+                          className="rounded-[22px] bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          onClick={() => void linkTargetPost(targetPostInput)}
+                          disabled={submittingAction !== null || !targetPostInput.trim()}
+                        >
+                          Analyze Reddit Post
+                        </button>
+                      </div>
+                      <p className="mt-3 text-xs leading-5 text-slate-400">
+                        Direct moderation still only works for posts inside r/{post.subredditName}, where the app is installed.
+                      </p>
+                    </div>
+
+                    <div className="mb-6 rounded-[24px] bg-slate-950 p-5 text-white">
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
                         Moderation Policy Profile
                       </p>
                       <p className="mt-2 text-sm leading-6 text-slate-300">
@@ -1010,30 +1037,6 @@ export const App = () => {
 
                     {mode === 'seeded-demo' ? (
                       <>
-                        <div className="mb-6 rounded-[24px] bg-slate-950 p-5 text-white">
-                          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
-                            Fallback Live Post Link
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-slate-300">
-                            Only use this when you opened a demo console or launched from the subreddit menu. If you opened from a post menu, the post is already linked automatically.
-                          </p>
-                          <div className="mt-4 flex flex-col gap-3 md:flex-row">
-                            <input
-                              className="min-w-0 flex-1 rounded-[22px] border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none transition focus:border-slate-500"
-                              placeholder="https://reddit.com/r/modqueue_copilot_dev/comments/..."
-                              value={targetPostInput}
-                              onChange={(event) => setTargetPostInput(event.target.value)}
-                            />
-                            <button
-                              className="rounded-[22px] bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-                              onClick={() => void linkTargetPost(targetPostInput)}
-                              disabled={submittingAction !== null || !targetPostInput.trim()}
-                            >
-                              Analyze Live Post
-                            </button>
-                          </div>
-                        </div>
-
                         <div className="mb-6 rounded-[24px] bg-slate-50 p-5">
                           <div className="flex items-center justify-between gap-4">
                             <div>
@@ -1063,7 +1066,7 @@ export const App = () => {
                           Linked Analysis
                         </p>
                         <p className="mt-2 text-sm leading-6 text-slate-600">
-                          This console is analyzing a real Reddit post selected from the moderation menu, not a seeded demo scenario.
+                          This console is currently linked to a live Reddit post. You can still paste another Reddit post URL above to switch the analysis target.
                         </p>
                       </div>
                     )}
