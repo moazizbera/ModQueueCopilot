@@ -3,6 +3,7 @@ import './index.css';
 import { context, requestExpandedMode } from '@devvit/web/client';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { useState } from 'react';
 import type { ModerationAction, ModerationDashboardResponse } from '../shared/api';
 import { useModerationAssistant } from './hooks/useModerationAssistant';
 
@@ -150,8 +151,20 @@ const MiniStat = ({
   </div>
 );
 
+type SplashTabId = 'summary' | 'signals' | 'actions';
+
+const splashTabs: Array<{
+  id: SplashTabId;
+  label: string;
+}> = [
+  { id: 'summary', label: 'Summary' },
+  { id: 'signals', label: 'Signals' },
+  { id: 'actions', label: 'Actions' },
+];
+
 export const Splash = () => {
   const { dashboard, error, loading, runAction, submittingAction } = useModerationAssistant();
+  const [activeTab, setActiveTab] = useState<SplashTabId>('summary');
 
   const isSubmitting = (action: ModerationAction): boolean => submittingAction === action;
 
@@ -168,10 +181,10 @@ export const Splash = () => {
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-200/90">
               ModQueue Copilot
             </p>
-            <h1 className="mt-2 text-[1.65rem] font-semibold leading-tight text-white">
+            <h1 className="mt-2 text-[1.45rem] font-semibold leading-tight text-white">
               Moderator triage for u/{context.username ?? 'moderator'}
             </h1>
-            <p className="mt-2 text-sm leading-6 text-slate-300">
+            <p className="mt-1 text-xs leading-5 text-slate-300">
               Instant verdict, transparent reasons, and direct action from the post itself.
             </p>
           </div>
@@ -221,48 +234,110 @@ export const Splash = () => {
                 <span>{dashboard.analysis.confidence}% confidence</span>
               </div>
 
-              <p className="mt-4 text-sm leading-6 text-slate-200">{dashboard.analysis.reason}</p>
+              <div className="mt-4 grid grid-cols-3 gap-2 rounded-[22px] border border-white/10 bg-white/6 p-2 backdrop-blur-sm">
+                {splashTabs.map((tab) => {
+                  const active = tab.id === activeTab;
 
-              <div className="mt-4 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className={`h-2 rounded-full ${badgeTone(dashboard.analysis.decision)}`}
-                  style={{ width: `${dashboard.analysis.confidence}%` }}
-                />
+                  return (
+                    <button
+                      key={tab.id}
+                      className={`rounded-[18px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                        active
+                          ? 'bg-white text-slate-950'
+                          : 'bg-transparent text-slate-300 hover:bg-white/10'
+                      }`}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                <MiniStat label="Confidence" value={`${dashboard.analysis.confidence}%`} />
-                <MiniStat label="Reports" value={formatCompactNumber(dashboard.post.numberOfReports)} />
-                <MiniStat label="Comments" value={formatCompactNumber(dashboard.post.numberOfComments)} />
-              </div>
+              {activeTab === 'summary' ? (
+                <>
+                  <p className="mt-4 text-sm leading-6 text-slate-200">{dashboard.analysis.reason}</p>
 
-              <div className="mt-4 grid gap-2">
-                {dashboard.analysis.signals.slice(0, 3).map((signal) => (
-                  <div
-                    key={`${signal.label}-${signal.detail}`}
-                    className="rounded-2xl border border-white/10 bg-white/6 px-3 py-3 text-sm leading-5 text-slate-200"
-                  >
-                    <span className="font-semibold text-white">{signal.label}</span>
-                    <span className="text-slate-400"> {'->'} </span>
-                    {signal.detail}
+                  <div className="mt-4 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className={`h-2 rounded-full ${badgeTone(dashboard.analysis.decision)}`}
+                      style={{ width: `${dashboard.analysis.confidence}%` }}
+                    />
                   </div>
-                ))}
-              </div>
 
-              <div className="mt-4 rounded-3xl border border-white/10 bg-black/20 p-4">
-                <div className="flex items-center justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-                  <span>Post snapshot</span>
-                  <span>r/{dashboard.post.subredditName}</span>
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    <MiniStat label="Confidence" value={`${dashboard.analysis.confidence}%`} />
+                    <MiniStat label="Reports" value={formatCompactNumber(dashboard.post.numberOfReports)} />
+                    <MiniStat label="Comments" value={formatCompactNumber(dashboard.post.numberOfComments)} />
+                  </div>
+                </>
+              ) : null}
+
+              {activeTab === 'signals' ? (
+                <>
+                  <div className="mt-4 grid gap-2">
+                    {dashboard.analysis.signals.slice(0, 3).map((signal) => (
+                      <div
+                        key={`${signal.label}-${signal.detail}`}
+                        className="rounded-2xl border border-white/10 bg-white/6 px-3 py-3 text-sm leading-5 text-slate-200"
+                      >
+                        <span className="font-semibold text-white">{signal.label}</span>
+                        <span className="text-slate-400"> {'->'} </span>
+                        {signal.detail}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 rounded-3xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-center justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                      <span>Post snapshot</span>
+                      <span>r/{dashboard.post.subredditName}</span>
+                    </div>
+                    <p className="mt-3 line-clamp-2 text-base font-semibold leading-6 text-white">
+                      {dashboard.post.title}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
+                      <span>u/{dashboard.post.authorName}</span>
+                      <span>Score {formatCompactNumber(dashboard.post.score)}</span>
+                      <span>{dashboard.post.source === 'linked-target' ? 'Live target' : 'Seeded scenario'}</span>
+                    </div>
+                  </div>
+                </>
+              ) : null}
+
+              {activeTab === 'actions' ? (
+                <div className="mt-4 space-y-4">
+                  <div className="rounded-3xl border border-white/10 bg-black/20 px-4 py-4 text-sm leading-6 text-slate-200">
+                    {dashboard.mode === 'live-target'
+                      ? `Live moderation is armed for r/${dashboard.post.subredditName}.`
+                      : `Demo mode is active. Launch from a post menu for one-tap live moderation in r/${dashboard.post.subredditName}.`}
+                  </div>
+
+                  {primaryAction ? (
+                    <div>
+                      <button
+                        className={`flex h-12 w-full items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(primaryAction, true)}`}
+                        onClick={() => void runAction(primaryAction)}
+                        disabled={submittingAction !== null}
+                      >
+                        {formatActionCopy(primaryAction, isSubmitting(primaryAction))}
+                      </button>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        {secondaryActions.map((action) => (
+                          <button
+                            key={action}
+                            className={`flex h-11 items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(action, false)}`}
+                            onClick={() => void runAction(action)}
+                            disabled={submittingAction !== null}
+                          >
+                            {formatActionCopy(action, isSubmitting(action))}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-                <p className="mt-3 line-clamp-2 text-base font-semibold leading-6 text-white">
-                  {dashboard.post.title}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
-                  <span>u/{dashboard.post.authorName}</span>
-                  <span>Score {formatCompactNumber(dashboard.post.score)}</span>
-                  <span>{dashboard.post.source === 'linked-target' ? 'Live target' : 'Seeded scenario'}</span>
-                </div>
-              </div>
+              ) : null}
             </>
           ) : (
             <div className="rounded-3xl border border-rose-400/20 bg-rose-500/10 px-4 py-4 text-sm leading-6 text-rose-100">
@@ -270,38 +345,6 @@ export const Splash = () => {
             </div>
           )}
         </div>
-
-        {dashboard ? (
-          <div className="mt-4 rounded-3xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-xs leading-5 text-amber-100">
-            {dashboard.mode === 'live-target'
-              ? `Live moderation is armed for r/${dashboard.post.subredditName}.`
-              : `Demo mode is active. Launch from a post menu for one-tap live moderation in r/${dashboard.post.subredditName}.`}
-          </div>
-        ) : null}
-
-        {dashboard && primaryAction ? (
-          <div className="mt-4">
-            <button
-              className={`flex h-12 w-full items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(primaryAction, true)}`}
-              onClick={() => void runAction(primaryAction)}
-              disabled={submittingAction !== null}
-            >
-              {formatActionCopy(primaryAction, isSubmitting(primaryAction))}
-            </button>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {secondaryActions.map((action) => (
-                <button
-                  key={action}
-                  className={`flex h-11 items-center justify-center rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(action, false)}`}
-                  onClick={() => void runAction(action)}
-                  disabled={submittingAction !== null}
-                >
-                  {formatActionCopy(action, isSubmitting(action))}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
 
         {error ? (
           <div className="mt-4 rounded-3xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-xs leading-5 text-rose-100">
