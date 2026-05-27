@@ -357,15 +357,15 @@ export const Splash = () => {
           </div>
         ) : null}
 
-        <div className="mt-3 rounded-[18px] border border-white/10 bg-white/6 px-3 py-2.5 text-[11px] leading-4 text-slate-300">
-          Best demo path: open a post, launch ModQueue Copilot from the menu, show the verdict, top signals, and the primary action button.
+        <div className="mt-2 rounded-[16px] border border-white/10 bg-white/6 px-3 py-2 text-[10px] leading-4 text-slate-300">
+          Best demo path: show verdict, one signal, then the main action.
         </div>
 
         <button
-          className="mt-3 flex h-11 w-full items-center justify-center rounded-[18px] border border-white/12 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+          className="mt-2 flex h-10 w-full items-center justify-center rounded-[16px] border border-white/12 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
           onClick={(e) => requestExpandedMode(e.nativeEvent, 'game')}
         >
-          Open Full Moderation Console
+          Open Full Console
         </button>
       </div>
     </div>
