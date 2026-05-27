@@ -145,9 +145,9 @@ const MiniStat = ({
   label: string;
   value: string;
 }) => (
-  <div className="rounded-3xl border border-white/10 bg-white/6 px-4 py-3 backdrop-blur-sm">
+  <div className="rounded-[18px] border border-white/10 bg-white/6 px-3 py-2.5 backdrop-blur-sm">
     <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">{label}</p>
-    <p className="mt-2 text-lg font-semibold text-white">{value}</p>
+    <p className="mt-1.5 text-base font-semibold text-white">{value}</p>
   </div>
 );
 
@@ -174,21 +174,21 @@ export const Splash = () => {
   );
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,#f8d87a_0%,transparent_34%),radial-gradient(circle_at_bottom_right,#fb7185_0%,transparent_26%),linear-gradient(180deg,#121826_0%,#1e293b_48%,#f4efe7_48%,#efe3d0_100%)] px-4 py-5 text-slate-900">
-      <div className="mx-auto max-w-[28rem] rounded-[32px] border border-white/12 bg-slate-950/88 p-5 shadow-[0_36px_120px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+    <div className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,#f8d87a_0%,transparent_34%),radial-gradient(circle_at_bottom_right,#fb7185_0%,transparent_26%),linear-gradient(180deg,#121826_0%,#1e293b_48%,#f4efe7_48%,#efe3d0_100%)] px-2 py-2 text-slate-900 sm:px-3 sm:py-3">
+      <div className="w-full rounded-[24px] border border-white/12 bg-slate-950/88 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.34)] backdrop-blur-xl sm:p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-200/90">
               ModQueue Copilot
             </p>
-            <h1 className="mt-2 text-[1.45rem] font-semibold leading-tight text-white">
+            <h1 className="mt-1.5 text-[1.2rem] font-semibold leading-tight text-white sm:text-[1.3rem]">
               Moderator triage for u/{context.username ?? 'moderator'}
             </h1>
-            <p className="mt-1 text-xs leading-5 text-slate-300">
+            <p className="mt-1 text-[11px] leading-4 text-slate-300 sm:text-xs sm:leading-5">
               Instant verdict, transparent reasons, and direct action from the post itself.
             </p>
           </div>
-          <div className="rounded-full border border-white/12 bg-white/8 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-300">
+          <div className="rounded-full border border-white/12 bg-white/8 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">
             {dashboard
               ? dashboard.mode === 'live-target'
                 ? 'Live'
@@ -197,7 +197,7 @@ export const Splash = () => {
           </div>
         </div>
 
-        <div className="mt-5 rounded-[30px] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04))] p-5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <div className="mt-3 rounded-[22px] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04))] p-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:p-4">
           {loading ? (
             <div className="space-y-3 animate-pulse">
               <div className="h-5 w-32 rounded-full bg-white/10" />
@@ -211,22 +211,22 @@ export const Splash = () => {
             </div>
           ) : dashboard ? (
             <>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`rounded-full px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.24em] ${badgeTone(dashboard.analysis.decision)}`}
+                  className={`rounded-full px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] ${badgeTone(dashboard.analysis.decision)}`}
                 >
                   {riskLevelLabel(dashboard.analysis.decision, dashboard.analysis.confidence)}
                 </span>
-                <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${metaTone(dashboard.analysis.decision)}`}>
+                <span className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${metaTone(dashboard.analysis.decision)}`}>
                   {queuePriorityLabel(dashboard.analysis.caseFile.queuePriority)}
                 </span>
               </div>
 
-              <h2 className="mt-4 text-[1.35rem] font-semibold leading-tight text-white">
+              <h2 className="mt-3 text-[1.1rem] font-semibold leading-tight text-white sm:text-[1.2rem]">
                 {decisionHeadline(dashboard.analysis.decision)}
               </h2>
 
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+              <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300 sm:text-[11px]">
                 <span>{categoryLabel(dashboard.analysis.category)}</span>
                 <span className="text-slate-500">/</span>
                 <span>{recommendedActionLabel(dashboard.analysis.decision)}</span>
@@ -234,14 +234,14 @@ export const Splash = () => {
                 <span>{dashboard.analysis.confidence}% confidence</span>
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-2 rounded-[22px] border border-white/10 bg-white/6 p-2 backdrop-blur-sm">
+              <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-[18px] border border-white/10 bg-white/6 p-1.5 backdrop-blur-sm">
                 {splashTabs.map((tab) => {
                   const active = tab.id === activeTab;
 
                   return (
                     <button
                       key={tab.id}
-                      className={`rounded-[18px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                      className={`rounded-[14px] px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] transition sm:text-xs ${
                         active
                           ? 'bg-white text-slate-950'
                           : 'bg-transparent text-slate-300 hover:bg-white/10'
@@ -256,16 +256,16 @@ export const Splash = () => {
 
               {activeTab === 'summary' ? (
                 <>
-                  <p className="mt-3 text-sm leading-5 text-slate-200">{dashboard.analysis.reason}</p>
+                  <p className="mt-2.5 text-sm leading-5 text-slate-200">{dashboard.analysis.reason}</p>
 
-                  <div className="mt-3 overflow-hidden rounded-full bg-white/10">
+                  <div className="mt-2.5 overflow-hidden rounded-full bg-white/10">
                     <div
                       className={`h-2 rounded-full ${badgeTone(dashboard.analysis.decision)}`}
                       style={{ width: `${dashboard.analysis.confidence}%` }}
                     />
                   </div>
 
-                  <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="mt-2.5 grid grid-cols-3 gap-1.5">
                     <MiniStat label="Confidence" value={`${dashboard.analysis.confidence}%`} />
                     <MiniStat label="Reports" value={formatCompactNumber(dashboard.post.numberOfReports)} />
                     <MiniStat label="Comments" value={formatCompactNumber(dashboard.post.numberOfComments)} />
@@ -275,11 +275,11 @@ export const Splash = () => {
 
               {activeTab === 'signals' ? (
                 <>
-                  <div className="mt-3 grid gap-2">
+                  <div className="mt-2.5 grid gap-1.5">
                     {dashboard.analysis.signals.slice(0, 3).map((signal) => (
                       <div
                         key={`${signal.label}-${signal.detail}`}
-                        className="rounded-[18px] border border-white/10 bg-white/6 px-3 py-2.5 text-sm leading-5 text-slate-200"
+                        className="rounded-[16px] border border-white/10 bg-white/6 px-3 py-2 text-sm leading-5 text-slate-200"
                       >
                         <span className="font-semibold text-white">{signal.label}</span>
                         <span className="text-slate-400"> {'->'} </span>
@@ -288,7 +288,7 @@ export const Splash = () => {
                     ))}
                   </div>
 
-                  <div className="mt-3 rounded-[22px] border border-white/10 bg-black/20 px-3 py-3">
+                  <div className="mt-2.5 rounded-[18px] border border-white/10 bg-black/20 px-3 py-2.5">
                     <div className="flex items-center justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
                       <span>Post snapshot</span>
                       <span>r/{dashboard.post.subredditName}</span>
@@ -306,8 +306,8 @@ export const Splash = () => {
               ) : null}
 
               {activeTab === 'actions' ? (
-                <div className="mt-4 space-y-3">
-                  <div className="flex flex-wrap items-center gap-2 rounded-[22px] border border-white/10 bg-black/20 px-3 py-3 text-[11px] font-medium leading-5 text-slate-200">
+                <div className="mt-2.5 space-y-2.5">
+                  <div className="flex flex-wrap items-center gap-2 rounded-[18px] border border-white/10 bg-black/20 px-3 py-2.5 text-[11px] font-medium leading-5 text-slate-200">
                     <span className="rounded-full bg-white/10 px-2.5 py-1 font-semibold uppercase tracking-[0.18em] text-slate-100">
                       {dashboard.mode === 'live-target' ? 'Live' : 'Demo'}
                     </span>
@@ -319,7 +319,7 @@ export const Splash = () => {
                   </div>
 
                   {primaryAction ? (
-                    <div className="rounded-[24px] border border-white/10 bg-white/6 p-3">
+                    <div className="rounded-[18px] border border-white/10 bg-white/6 p-2.5">
                       <button
                         className={`flex h-11 w-full items-center justify-center rounded-[18px] px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${actionTone(primaryAction, true)}`}
                         onClick={() => void runAction(primaryAction)}
@@ -327,7 +327,7 @@ export const Splash = () => {
                       >
                         {formatActionCopy(primaryAction, isSubmitting(primaryAction))}
                       </button>
-                      <div className="mt-2 grid grid-cols-2 gap-2">
+                      <div className="mt-2 grid grid-cols-2 gap-1.5">
                         {secondaryActions.map((action) => (
                           <button
                             key={action}
@@ -345,24 +345,24 @@ export const Splash = () => {
               ) : null}
             </>
           ) : (
-            <div className="rounded-3xl border border-rose-400/20 bg-rose-500/10 px-4 py-4 text-sm leading-6 text-rose-100">
+            <div className="rounded-[18px] border border-rose-400/20 bg-rose-500/10 px-3 py-3 text-sm leading-5 text-rose-100">
               The dashboard could not load for this post context.
             </div>
           )}
         </div>
 
         {error ? (
-          <div className="mt-4 rounded-3xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-xs leading-5 text-rose-100">
+          <div className="mt-3 rounded-[18px] border border-rose-400/25 bg-rose-500/10 px-3 py-2.5 text-xs leading-5 text-rose-100">
             {error}
           </div>
         ) : null}
 
-        <div className="mt-4 rounded-3xl border border-white/10 bg-white/6 px-4 py-3 text-xs leading-5 text-slate-300">
+        <div className="mt-3 rounded-[18px] border border-white/10 bg-white/6 px-3 py-2.5 text-[11px] leading-4 text-slate-300">
           Best demo path: open a post, launch ModQueue Copilot from the menu, show the verdict, top signals, and the primary action button.
         </div>
 
         <button
-          className="mt-5 flex h-12 w-full items-center justify-center rounded-full border border-white/12 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+          className="mt-3 flex h-11 w-full items-center justify-center rounded-[18px] border border-white/12 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
           onClick={(e) => requestExpandedMode(e.nativeEvent, 'game')}
         >
           Open Full Moderation Console
