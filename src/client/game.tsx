@@ -55,7 +55,7 @@ const recommendedActionLabel = (decision: ModerationDecision): string => {
     case 'remove':
       return 'Remove now';
     case 'review':
-      return 'Send for human review';
+      return 'Needs human review';
     case 'approve':
       return 'Approve and monitor';
   }
@@ -80,7 +80,7 @@ const actionLabel: Record<ModerationAction, string> = {
   approve: 'Approve',
   remove: 'Remove',
   reply: 'Reply',
-  review: 'Review',
+  review: 'Needs human review',
 };
 
 type ConsoleTabId = 'overview' | 'controls' | 'activity';
@@ -263,7 +263,7 @@ const activityLabel = {
   'link-live-post': 'Linked Live Post',
   remove: 'Removed',
   reply: 'Replied',
-  review: 'Sent To Review',
+  review: 'Needs Human Review',
   'switch-policy': 'Switched Policy',
   'switch-scenario': 'Switched Demo',
 } as const;
@@ -676,6 +676,11 @@ export const App = () => {
                     <p className="mt-1 font-medium text-white">
                       {audit.lastAction ? actionLabel[audit.lastAction] : 'None'}
                     </p>
+                    {audit.lastAction === 'review' ? (
+                      <span className="mt-2 inline-flex rounded-full bg-amber-300 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-950">
+                        Waiting for human moderator
+                      </span>
+                    ) : null}
                   </div>
                   <div>
                     <p className="text-slate-400">Synced</p>

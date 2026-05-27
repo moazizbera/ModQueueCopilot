@@ -1421,7 +1421,7 @@ const createToastMessage = (action: ModerationAction): string => {
     case 'remove':
       return 'Post removed. Reddit may still show it to moderators and the author.';
     case 'review':
-      return 'Post marked for moderator review';
+      return 'Post marked as needing human review';
     case 'reply':
       return 'Reply suggestion posted';
   }
@@ -1477,12 +1477,12 @@ export const executeMenuModerationAction = async (
 
   if (requestedAction === 'auto') {
     return action === 'review'
-      ? `Recommended status: review (${analysis.confidence}% confidence). No Reddit status changed.`
+      ? `Recommended status: needs human review (${analysis.confidence}% confidence). No Reddit status changed.`
       : `Recommended status applied: ${action} (${analysis.confidence}% confidence).`;
   }
 
   return action === 'review'
-    ? 'Marked for moderator review. No Reddit status changed.'
+    ? 'Marked as needing human review. No Reddit status changed.'
     : createToastMessage(action);
 };
 
