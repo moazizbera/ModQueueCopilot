@@ -92,7 +92,11 @@
     ]
   },
   "forms": {
-    "analyzePostForm": "/internal/form/analyze-post-submit"
+    "analyzePostForm": "/internal/form/analyze-post-submit",
+    "spamDemoPostForm": "/internal/form/create-spam-demo-post-submit",
+    "promotionDemoPostForm": "/internal/form/create-promotion-demo-post-submit",
+    "questionDemoPostForm": "/internal/form/create-question-demo-post-submit",
+    "discussionDemoPostForm": "/internal/form/create-discussion-demo-post-submit"
   },
   "triggers": {
     "onAppInstall": "/internal/triggers/on-app-install"

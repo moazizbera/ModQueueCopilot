@@ -4,8 +4,51 @@ import { context } from '@devvit/web/server';
 import { createPost } from '../core/post';
 import { buildPlaytestPostUrl } from '../core/urls';
 import { executeMenuModerationAction } from '../core/moderation';
+import { getModerationScenario } from '../core/scenarios';
+import type { ModerationScenarioId } from '../../shared/api';
 
 export const menu = new Hono();
+
+const buildScenarioPreviewResponse = (
+  scenarioId: ModerationScenarioId,
+  formName:
+    | 'spamDemoPostForm'
+    | 'promotionDemoPostForm'
+    | 'questionDemoPostForm'
+    | 'discussionDemoPostForm'
+): UiResponse => {
+  const scenario = getModerationScenario(scenarioId, 0);
+
+  return {
+    showForm: {
+      form: {
+        acceptLabel: 'Create Demo Post',
+        description:
+          'Review the title and body before creating this demo post. The scenario type stays fixed, and creation only happens after you confirm.',
+        fields: [
+          {
+            helpText: scenario.label,
+            label: 'Post Title Preview',
+            name: 'titlePreview',
+            required: false,
+            type: 'string',
+            defaultValue: scenario.title,
+          },
+          {
+            helpText: 'Preview only. This is the body that will be used for the created demo post.',
+            label: 'Post Body Preview',
+            name: 'bodyPreview',
+            required: false,
+            type: 'string',
+            defaultValue: scenario.body,
+          },
+        ],
+        title: `Create ${scenario.label} Demo Post`,
+      },
+      name: formName,
+    },
+  };
+};
 
 const requireMenuPostContext = (): UiResponse | null => {
   if (context.postId) {
@@ -126,85 +169,29 @@ menu.post('/remove-current-post', async (c) => {
 });
 
 menu.post('/post-create-spam', async (c) => {
-  try {
-    const post = await createPost({ scenarioId: 'spam-crypto' });
-
-    return c.json<UiResponse>(
-      {
-        navigateTo: buildPlaytestPostUrl(context.subredditName, post.id),
-      },
-      200
-    );
-  } catch (error) {
-    console.error(`Error creating post: ${error}`);
-    return c.json<UiResponse>(
-      {
-        showToast: 'Failed to create moderation demo post',
-      },
-      400
-    );
-  }
+  return c.json<UiResponse>(
+    buildScenarioPreviewResponse('spam-crypto', 'spamDemoPostForm'),
+    200
+  );
 });
 
 menu.post('/post-create-promotion', async (c) => {
-  try {
-    const post = await createPost({ scenarioId: 'promotion-launch' });
-
-    return c.json<UiResponse>(
-      {
-        navigateTo: buildPlaytestPostUrl(context.subredditName, post.id),
-      },
-      200
-    );
-  } catch (error) {
-    console.error(`Error creating post: ${error}`);
-    return c.json<UiResponse>(
-      {
-        showToast: 'Failed to create moderation demo post',
-      },
-      400
-    );
-  }
+  return c.json<UiResponse>(
+    buildScenarioPreviewResponse('promotion-launch', 'promotionDemoPostForm'),
+    200
+  );
 });
 
 menu.post('/post-create-question', async (c) => {
-  try {
-    const post = await createPost({ scenarioId: 'question-rules' });
-
-    return c.json<UiResponse>(
-      {
-        navigateTo: buildPlaytestPostUrl(context.subredditName, post.id),
-      },
-      200
-    );
-  } catch (error) {
-    console.error(`Error creating post: ${error}`);
-    return c.json<UiResponse>(
-      {
-        showToast: 'Failed to create moderation demo post',
-      },
-      400
-    );
-  }
+  return c.json<UiResponse>(
+    buildScenarioPreviewResponse('question-rules', 'questionDemoPostForm'),
+    200
+  );
 });
 
 menu.post('/post-create-discussion', async (c) => {
-  try {
-    const post = await createPost({ scenarioId: 'discussion-policy' });
-
-    return c.json<UiResponse>(
-      {
-        navigateTo: buildPlaytestPostUrl(context.subredditName, post.id),
-      },
-      200
-    );
-  } catch (error) {
-    console.error(`Error creating post: ${error}`);
-    return c.json<UiResponse>(
-      {
-        showToast: 'Failed to create moderation demo post',
-      },
-      400
-    );
-  }
+  return c.json<UiResponse>(
+    buildScenarioPreviewResponse('discussion-policy', 'discussionDemoPostForm'),
+    200
+  );
 });

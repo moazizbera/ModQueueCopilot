@@ -2,10 +2,15 @@ import { context, reddit } from '@devvit/web/server';
 import type { T3 } from '@devvit/shared-types/tid.js';
 import type { Post } from '@devvit/web/server';
 import type { ModerationScenarioId } from '../../shared/api';
-import { defaultScenarioId, pickModerationScenario } from './scenarios';
+import {
+  defaultScenarioId,
+  getModerationScenario,
+  pickModerationScenario,
+} from './scenarios';
 
 type CreateScenarioPostOptions = {
   scenarioId?: ModerationScenarioId;
+  scenarioVariantIndex?: number;
   targetPostId?: T3;
 };
 
@@ -31,6 +36,7 @@ const assertTargetPostMatchesCurrentSubreddit = (targetPost: Post): void => {
 
 export const createPost = async ({
   scenarioId = defaultScenarioId,
+  scenarioVariantIndex,
   targetPostId,
 }: CreateScenarioPostOptions = {}) => {
   if (targetPostId) {
@@ -50,7 +56,14 @@ export const createPost = async ({
     });
   }
 
-  const { scenario, variantIndex } = pickModerationScenario(scenarioId);
+  const scenarioSelection =
+    typeof scenarioVariantIndex === 'number'
+      ? {
+          scenario: getModerationScenario(scenarioId, scenarioVariantIndex),
+          variantIndex: scenarioVariantIndex,
+        }
+      : pickModerationScenario(scenarioId);
+  const { scenario, variantIndex } = scenarioSelection;
 
   return await reddit.submitCustomPost({
     entry: 'default',
