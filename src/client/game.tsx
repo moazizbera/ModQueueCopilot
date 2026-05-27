@@ -390,7 +390,7 @@ export const App = () => {
   const isSubmitting = (action: ModerationAction): boolean =>
     submittingAction === action;
   const primaryAction = analysis.decision;
-  const secondaryActions = (['approve', 'remove', 'review', 'reply'] as ModerationAction[]).filter(
+  const secondaryStatusActions = (['approve', 'remove', 'review'] as ModerationDecision[]).filter(
     (action) => action !== primaryAction
   );
   const timeSavedMinutes =
@@ -440,7 +440,7 @@ export const App = () => {
       ? `${policyProfiles.length} profiles`
       : activeControlsTab === 'post'
         ? `${post.numberOfReports} reports`
-        : `${secondaryActions.length + 1} actions`;
+        : `${secondaryStatusActions.length + 2} actions`;
   const detailDialog =
     detailDialogMode === 'workspace'
       ? {
@@ -756,7 +756,7 @@ export const App = () => {
                           ? `${policyProfiles.length} profiles`
                           : tab.id === 'post'
                             ? `${post.numberOfReports} reports`
-                            : `${secondaryActions.length + 1} actions`;
+                            : `${secondaryStatusActions.length + 2} actions`;
 
                       return (
                         <button
@@ -1121,7 +1121,7 @@ export const App = () => {
                           Action Center
                         </p>
                         <p className="mt-2 text-sm leading-6 text-slate-300">
-                          Recommended next move is highlighted first so a moderator can act without scanning the whole dashboard.
+                          The recommended moderation status is shown first. Status changes and reply posting are separated so the next step is obvious.
                         </p>
                       </div>
                       <div className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-100">
@@ -1140,13 +1140,23 @@ export const App = () => {
                           onChange={(event) => setReplyText(event.target.value)}
                         />
                         <p className="mt-3 text-xs leading-5 text-slate-400">
-                          The reply editor is separated here so the moderator can read and edit the comment without scrolling past setup panels first.
+                          Edit the reply here, then post it only when you want to send a moderator comment.
                         </p>
+                        <button
+                          className="mt-4 flex w-full items-center justify-center rounded-[20px] border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/14 disabled:cursor-not-allowed disabled:opacity-60"
+                          onClick={() => void runAction('reply', currentReplyText)}
+                          disabled={submittingAction !== null}
+                        >
+                          {isSubmitting('reply') ? 'Posting reply...' : 'Post moderator reply'}
+                        </button>
                       </div>
 
                       <div className="rounded-[24px] border border-white/10 bg-white/6 p-5 backdrop-blur-sm">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                          One-click actions
+                          Apply moderation status
+                        </p>
+                        <p className="mt-3 text-sm leading-6 text-slate-300">
+                          Recommended status: <span className="font-semibold text-white">{recommendedActionLabel(primaryAction)}</span>
                         </p>
                         <button
                           className={`mt-4 flex w-full items-center justify-center rounded-[22px] px-4 py-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
@@ -1165,29 +1175,23 @@ export const App = () => {
                               : primaryAction === 'review'
                                 ? 'Reviewing...'
                                 : 'Approving...'
-                            : recommendedActionLabel(primaryAction)}
+                            : `Apply ${recommendedActionLabel(primaryAction)}`}
                         </button>
 
                         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                          {secondaryActions.map((action) => (
+                          {secondaryStatusActions.map((action) => (
                             <button
                               key={action}
                               className="rounded-[20px] border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-60"
-                              onClick={() =>
-                                action === 'reply'
-                                  ? void runAction('reply', currentReplyText)
-                                  : void runAction(action)
-                              }
+                              onClick={() => void runAction(action)}
                               disabled={submittingAction !== null}
                             >
                               {isSubmitting(action)
-                                ? action === 'reply'
-                                  ? 'Replying...'
-                                  : action === 'remove'
-                                    ? 'Removing...'
-                                    : action === 'review'
-                                      ? 'Reviewing...'
-                                      : 'Approving...'
+                                ? action === 'remove'
+                                  ? 'Removing...'
+                                  : action === 'review'
+                                    ? 'Reviewing...'
+                                    : 'Approving...'
                                 : actionLabel[action]}
                             </button>
                           ))}
