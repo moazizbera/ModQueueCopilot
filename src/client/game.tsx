@@ -96,12 +96,14 @@ const consoleTabs: Array<{
   id: ConsoleTabId;
   label: string;
   kicker: string;
+  meta: string;
 }> = [
   {
     accent: 'from-sky-400/20 via-cyan-300/10 to-transparent',
     id: 'overview',
     kicker: 'Workspace 01',
     label: 'Overview',
+    meta: 'Impact, policy, and case file',
     description: 'Verdict, impact, and case file',
   },
   {
@@ -109,6 +111,7 @@ const consoleTabs: Array<{
     id: 'controls',
     kicker: 'Workspace 02',
     label: 'Controls',
+    meta: 'Moderator inputs and actions',
     description: 'Policy, scenarios, and action center',
   },
   {
@@ -116,6 +119,7 @@ const consoleTabs: Array<{
     id: 'activity',
     kicker: 'Workspace 03',
     label: 'Activity',
+    meta: 'Trail, signals, and handoff',
     description: 'Handoff, queue trail, and signals',
   },
 ];
@@ -126,12 +130,14 @@ const controlsTabs: Array<{
   id: ControlsTabId;
   label: string;
   kicker: string;
+  meta: string;
 }> = [
   {
     accent: 'from-sky-400/18 via-cyan-300/8 to-transparent',
     id: 'setup',
     kicker: 'Setup Lane',
     label: 'Setup',
+    meta: 'Profiles and target selection',
     description: 'Policy, linking, and demo scenarios',
   },
   {
@@ -139,6 +145,7 @@ const controlsTabs: Array<{
     id: 'post',
     kicker: 'Review Lane',
     label: 'Post',
+    meta: 'Source context and evidence',
     description: 'Captured post snapshot and source info',
   },
   {
@@ -146,6 +153,7 @@ const controlsTabs: Array<{
     id: 'reply',
     kicker: 'Action Lane',
     label: 'Reply & Action',
+    meta: 'Moderator response workflow',
     description: 'Moderator comment and one-click actions',
   },
 ];
@@ -156,6 +164,7 @@ const WorkspaceSectionButton = ({
   description,
   kicker,
   label,
+  meta,
   onClick,
 }: {
   accent: string;
@@ -163,6 +172,7 @@ const WorkspaceSectionButton = ({
   description: string;
   kicker: string;
   label: string;
+  meta: string;
   onClick: () => void;
 }) => (
   <button
@@ -193,6 +203,15 @@ const WorkspaceSectionButton = ({
       <p className={`mt-3 max-w-xs text-xs leading-5 ${active ? 'text-slate-600' : 'text-slate-300'}`}>
         {description}
       </p>
+      <div className="mt-3">
+        <span
+          className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+            active ? 'border-slate-200 bg-slate-100 text-slate-600' : 'border-white/10 bg-white/8 text-slate-200'
+          }`}
+        >
+          {meta}
+        </span>
+      </div>
     </div>
   </button>
 );
@@ -509,6 +528,18 @@ export const App = () => {
   const activeControlsSection =
     controlsTabs.find((tab) => tab.id === activeControlsTab) ??
     controlsTabs[0]!;
+  const workspaceBadge =
+    activeTab === 'overview'
+      ? `${policySimulations.length} policy views`
+      : activeTab === 'controls'
+        ? `${controlsTabs.length} moderator lanes`
+        : `${recentActivity.length} recent events`;
+  const controlsBadge =
+    activeControlsTab === 'setup'
+      ? `${policyProfiles.length} profiles`
+      : activeControlsTab === 'post'
+        ? `${post.numberOfReports} reports`
+        : `${secondaryActions.length + 1} actions`;
 
   return (
     <div className="mq-shell min-h-screen px-4 py-6 text-slate-900 sm:px-5 sm:py-8">
@@ -717,6 +748,7 @@ export const App = () => {
                     description={tab.description}
                     kicker={tab.kicker}
                     label={tab.label}
+                    meta={tab.meta}
                     onClick={() => setActiveTab(tab.id)}
                   />
                 );
@@ -738,7 +770,7 @@ export const App = () => {
                 </p>
               </div>
               <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
-                Moderation workspace
+                {workspaceBadge}
               </div>
             </div>
           </div>
@@ -966,6 +998,7 @@ export const App = () => {
                           description={tab.description}
                           kicker={tab.kicker}
                           label={tab.label}
+                          meta={tab.meta}
                           onClick={() => setActiveControlsTab(tab.id)}
                         />
                       );
@@ -987,7 +1020,7 @@ export const App = () => {
                       </p>
                     </div>
                     <div className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white">
-                      Moderator lane
+                      {controlsBadge}
                     </div>
                   </div>
                 </div>
