@@ -3,8 +3,50 @@ import type { UiResponse } from '@devvit/web/shared';
 import { context } from '@devvit/web/server';
 import { createPost } from '../core/post';
 import { buildPlaytestPostUrl } from '../core/urls';
+import { executeMenuModerationAction } from '../core/moderation';
 
 export const menu = new Hono();
+
+const requireMenuPostContext = (): UiResponse | null => {
+  if (context.postId) {
+    return null;
+  }
+
+  return {
+    showToast: 'Open this action from a post',
+  };
+};
+
+const runPostMenuAction = async (
+  action: 'approve' | 'auto' | 'remove' | 'review'
+): Promise<{ response: UiResponse; status: 200 | 400 }> => {
+  const missingContextResponse = requireMenuPostContext();
+
+  if (missingContextResponse) {
+    return {
+      response: missingContextResponse,
+      status: 400,
+    };
+  }
+
+  try {
+    const toastMessage = await executeMenuModerationAction(action);
+    return {
+      response: {
+        showToast: toastMessage,
+      },
+      status: 200,
+    };
+  } catch (error) {
+    console.error(`Post menu action ${action} failed:`, error);
+    return {
+      response: {
+        showToast: `Failed to ${action === 'auto' ? 'apply recommended status' : action} from the post menu`,
+      },
+      status: 400,
+    };
+  }
+};
 
 menu.post('/analyze-post-form', async (c) => {
   return c.json<UiResponse>(
@@ -61,6 +103,26 @@ menu.post('/analyze-current-post', async (c) => {
       400
     );
   }
+});
+
+menu.post('/auto-moderate-current-post', async (c) => {
+  const { response, status } = await runPostMenuAction('auto');
+  return c.json<UiResponse>(response, status);
+});
+
+menu.post('/approve-current-post', async (c) => {
+  const { response, status } = await runPostMenuAction('approve');
+  return c.json<UiResponse>(response, status);
+});
+
+menu.post('/review-current-post', async (c) => {
+  const { response, status } = await runPostMenuAction('review');
+  return c.json<UiResponse>(response, status);
+});
+
+menu.post('/remove-current-post', async (c) => {
+  const { response, status } = await runPostMenuAction('remove');
+  return c.json<UiResponse>(response, status);
 });
 
 menu.post('/post-create-spam', async (c) => {

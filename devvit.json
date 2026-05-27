@@ -27,8 +27,36 @@
         "endpoint": "/internal/menu/analyze-current-post"
       },
       {
+        "label": "Auto-set post status",
+        "description": "Apply the recommended moderation status to this post",
+        "location": "post",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/auto-moderate-current-post"
+      },
+      {
+        "label": "Approve post",
+        "description": "Approve this post from the Reddit menu",
+        "location": "post",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/approve-current-post"
+      },
+      {
+        "label": "Mark post for review",
+        "description": "Flag this post for moderator review from the menu",
+        "location": "post",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/review-current-post"
+      },
+      {
+        "label": "Remove post",
+        "description": "Remove this post from the Reddit menu",
+        "location": "post",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/remove-current-post"
+      },
+      {
         "label": "Analyze Reddit post by URL or ID",
-        "description": "Fallback: paste a post URL or ID when you are not launching from the post menu",
+        "description": "Paste a post URL or ID when you want to analyze a post directly",
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/analyze-post-form"

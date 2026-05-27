@@ -1427,6 +1427,65 @@ const createToastMessage = (action: ModerationAction): string => {
   }
 };
 
+export const executeMenuModerationAction = async (
+  requestedAction: ModerationDecision | 'auto'
+): Promise<string> => {
+  const moderatedPost = await requireCurrentPost();
+  const analysisInput = createLiveAnalysisInput(moderatedPost);
+  const impact = await readImpactState(analysisInput.subredditName);
+  const authorRiskContext = buildAuthorRiskContext(
+    impact.recentActivity,
+    analysisInput.authorName
+  );
+  const analysis = createAnalysis(
+    analysisInput,
+    defaultPolicyProfileId,
+    authorRiskContext
+  );
+  const action = requestedAction === 'auto' ? analysis.decision : requestedAction;
+  const actionTimestamp = new Date().toISOString();
+
+  switch (action) {
+    case 'approve':
+      await moderatedPost.approve();
+      break;
+    case 'remove':
+      await moderatedPost.remove(analysis.category === 'SPAM');
+      break;
+    case 'review':
+      break;
+  }
+
+  await recordImpactEvent({
+    action,
+    activity: createActivityItem({
+      authorName: analysisInput.authorName,
+      category: analysis.category,
+      createdAt: actionTimestamp,
+      decision: analysis.decision,
+      detail:
+        requestedAction === 'auto'
+          ? `AUTO applied ${action.toUpperCase()} from the post menu for ${analysis.category.toLowerCase()} content at ${analysis.confidence}% confidence.`
+          : `${action.toUpperCase()} executed from the post menu for ${analysis.category.toLowerCase()} content at ${analysis.confidence}% confidence.`,
+      eventType: action,
+      mode: 'live-target',
+      subredditName: analysisInput.subredditName,
+      title: analysisInput.title,
+    }),
+    subredditName: analysisInput.subredditName,
+  });
+
+  if (requestedAction === 'auto') {
+    return action === 'review'
+      ? `Recommended status: review (${analysis.confidence}% confidence). No Reddit status changed.`
+      : `Recommended status applied: ${action} (${analysis.confidence}% confidence).`;
+  }
+
+  return action === 'review'
+    ? 'Marked for moderator review. No Reddit status changed.'
+    : createToastMessage(action);
+};
+
 export const executeModerationAction = async (
   request: ModerationActionRequest
 ): Promise<ModerationActionResponse> => {
