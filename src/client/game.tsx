@@ -157,51 +157,6 @@ const controlsTabs: Array<{
   },
 ];
 
-const SidebarNavButton = ({
-  active,
-  badge,
-  collapsed,
-  description,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  badge: string;
-  collapsed: boolean;
-  description: string;
-  label: string;
-  onClick: () => void;
-}) => (
-  <button
-    className={`w-full rounded-[20px] border px-3 py-3 text-left transition ${
-      active
-        ? 'border-slate-900 bg-slate-900 text-white shadow-[0_16px_35px_rgba(15,23,42,0.18)]'
-        : 'border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50'
-    }`}
-    onClick={onClick}
-  >
-    <div className={`flex items-start ${collapsed ? 'justify-center' : 'justify-between'} gap-2`}>
-      <div className={collapsed ? 'text-center' : ''}>
-        <p className="text-sm font-semibold">{collapsed ? label.slice(0, 1) : label}</p>
-        {!collapsed ? (
-          <p className={`mt-1 text-xs leading-5 ${active ? 'text-slate-300' : 'text-slate-500'}`}>
-            {description}
-          </p>
-        ) : null}
-      </div>
-      {!collapsed ? (
-        <span
-          className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${
-            active ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-600'
-          }`}
-        >
-          {badge}
-        </span>
-      ) : null}
-    </div>
-  </button>
-);
-
 const DetailDialog = ({
   bullets,
   onClose,
@@ -379,7 +334,6 @@ export const App = () => {
   const [targetPostInput, setTargetPostInput] = useState('');
   const [activeTab, setActiveTab] = useState<ConsoleTabId>('overview');
   const [activeControlsTab, setActiveControlsTab] = useState<ControlsTabId>('reply');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [detailDialogMode, setDetailDialogMode] = useState<DetailDialogMode | null>(null);
 
   if (loading) {
@@ -499,7 +453,7 @@ export const App = () => {
                 ]
               : activeTab === 'controls'
                 ? [
-                    'Use the sidebar to move between setup, post context, and reply workflow without stacking those lanes together.',
+                    'Use the top switcher to move between setup, post context, and reply workflow without stacking those lanes together.',
                     'The main panel should feel like one job at a time: configure, inspect, or act.',
                     'Extra rationale belongs in this popup, not in another dense explainer block.',
                   ]
@@ -748,66 +702,88 @@ export const App = () => {
             </div>
           </div>
 
-          <div className="mt-8 grid gap-6 xl:grid-cols-[auto_minmax(0,1fr)] xl:items-start">
-            <aside
-              className={`rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-3 shadow-[0_16px_40px_rgba(15,23,42,0.06)] transition-all ${
-                sidebarCollapsed ? 'xl:w-[92px]' : 'xl:w-[290px]'
-              }`}
-            >
-              <div className={`mb-3 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} gap-3`}>
-                {!sidebarCollapsed ? (
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
-                      Navigation
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-slate-950">Moderator workspace</p>
-                  </div>
-                ) : null}
-                <button
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  onClick={() => setSidebarCollapsed((value) => !value)}
-                >
-                  {sidebarCollapsed ? '>' : '<'}
-                </button>
-              </div>
+          <div className="mt-8">
+            <div className="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-3 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+              <div className="grid gap-3 md:grid-cols-3">
+                {consoleTabs.map((tab) => {
+                  const badge =
+                    tab.id === 'overview'
+                      ? `${policySimulations.length} views`
+                      : tab.id === 'controls'
+                        ? `${controlsTabs.length} lanes`
+                        : `${recentActivity.length} events`;
 
-              <div className="space-y-2">
-                {consoleTabs.map((tab) => (
-                  <SidebarNavButton
-                    key={tab.id}
-                    active={tab.id === activeTab}
-                    badge={tab.id === 'overview' ? `${policySimulations.length}` : tab.id === 'controls' ? `${controlsTabs.length}` : `${recentActivity.length}`}
-                    collapsed={sidebarCollapsed}
-                    description={tab.meta}
-                    label={tab.label}
-                    onClick={() => setActiveTab(tab.id)}
-                  />
-                ))}
+                  return (
+                    <button
+                      key={tab.id}
+                      className={`rounded-[22px] border px-4 py-4 text-left transition ${
+                        tab.id === activeTab
+                          ? 'border-slate-900 bg-slate-900 text-white shadow-[0_16px_35px_rgba(15,23,42,0.16)]'
+                          : 'border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${tab.id === activeTab ? 'text-slate-300' : 'text-slate-500'}`}>
+                            {tab.kicker}
+                          </p>
+                          <p className="mt-2 text-base font-semibold">{tab.label}</p>
+                          <p className={`mt-2 text-sm leading-6 ${tab.id === activeTab ? 'text-slate-300' : 'text-slate-600'}`}>
+                            {tab.description}
+                          </p>
+                        </div>
+                        <span className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${tab.id === activeTab ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                          {badge}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
 
               {activeTab === 'controls' ? (
                 <div className="mt-3 border-t border-slate-200 pt-3">
-                  {!sidebarCollapsed ? (
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-                      Controls lanes
-                    </p>
-                  ) : null}
-                  <div className="space-y-2">
-                    {controlsTabs.map((tab) => (
-                      <SidebarNavButton
-                        key={tab.id}
-                        active={tab.id === activeControlsTab}
-                        badge={tab.id === 'setup' ? `${policyProfiles.length}` : tab.id === 'post' ? `${post.numberOfReports}` : `${secondaryActions.length + 1}`}
-                        collapsed={sidebarCollapsed}
-                        description={tab.meta}
-                        label={tab.label}
-                        onClick={() => setActiveControlsTab(tab.id)}
-                      />
-                    ))}
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {controlsTabs.map((tab) => {
+                      const badge =
+                        tab.id === 'setup'
+                          ? `${policyProfiles.length} profiles`
+                          : tab.id === 'post'
+                            ? `${post.numberOfReports} reports`
+                            : `${secondaryActions.length + 1} actions`;
+
+                      return (
+                        <button
+                          key={tab.id}
+                          className={`rounded-[20px] border px-4 py-3 text-left transition ${
+                            tab.id === activeControlsTab
+                              ? 'border-slate-900 bg-slate-950 text-white shadow-[0_14px_30px_rgba(15,23,42,0.14)]'
+                              : 'border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50'
+                          }`}
+                          onClick={() => setActiveControlsTab(tab.id)}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${tab.id === activeControlsTab ? 'text-slate-300' : 'text-slate-500'}`}>
+                                {tab.kicker}
+                              </p>
+                              <p className="mt-2 text-sm font-semibold">{tab.label}</p>
+                              <p className={`mt-2 text-xs leading-5 ${tab.id === activeControlsTab ? 'text-slate-300' : 'text-slate-600'}`}>
+                                {tab.description}
+                              </p>
+                            </div>
+                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${tab.id === activeControlsTab ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                              {badge}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ) : null}
-            </aside>
+            </div>
 
             <div className="min-w-0">
               <div className="rounded-[28px] border border-slate-200 bg-[linear-gradient(135deg,rgba(255,255,255,0.95),rgba(247,242,234,0.84))] px-5 py-5 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
@@ -893,7 +869,7 @@ export const App = () => {
                 />
               </div>
 
-              <div className="mt-8 grid gap-4 xl:grid-cols-3">
+              <div className="mt-8 grid gap-4 lg:grid-cols-2">
                 <div className="rounded-[28px] border border-slate-200 bg-slate-950 p-5 text-white shadow-[0_16px_45px_rgba(15,23,42,0.12)]">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
@@ -906,7 +882,7 @@ export const App = () => {
                       Open details
                     </button>
                   </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     <div className="rounded-[20px] bg-white/6 px-4 py-3">
                       <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Time saved</p>
                       <p className="mt-2 text-2xl font-semibold text-white">{formatTimeSaved(impact.estimatedMinutesSaved)}</p>
@@ -943,7 +919,7 @@ export const App = () => {
                   </div>
                 </div>
 
-                <div className="rounded-[28px] border border-slate-200 bg-[#f8fafc] p-5">
+                <div className="rounded-[28px] border border-slate-200 bg-[#f8fafc] p-5 lg:col-span-2">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
                       Case file
@@ -955,7 +931,7 @@ export const App = () => {
                       Open details
                     </button>
                   </div>
-                  <div className="mt-4 space-y-3">
+                  <div className="mt-4 grid gap-3 md:grid-cols-3">
                     <div className="rounded-[20px] bg-white px-4 py-3">
                       <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Recommended rule</p>
                       <p className="mt-2 text-sm font-semibold text-slate-950">{analysis.caseFile.recommendedRule}</p>
@@ -975,7 +951,7 @@ export const App = () => {
           ) : null}
 
           {activeTab === 'controls' ? (
-            <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="mt-8 space-y-6">
               <section className="rounded-[30px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfcfe_100%)] p-6 shadow-[0_16px_45px_rgba(15,23,42,0.06)]">
                 <div className="mb-6 rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbff_100%)] px-5 py-5">
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -1145,7 +1121,7 @@ export const App = () => {
                       </div>
                     </div>
 
-                    <div className="mt-5 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
+                    <div className="mt-5 grid gap-3 xl:grid-cols-[1.15fr_0.85fr]">
                       <div className="rounded-[24px] border border-white/10 bg-white/6 p-5 backdrop-blur-sm">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                           Suggested Reply
@@ -1231,18 +1207,20 @@ export const App = () => {
                 ) : null}
               </section>
 
-              <section className="space-y-6">
+              <section>
                 <div className="rounded-[30px] border border-slate-200 bg-white p-6">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
                     Quick Facts
                   </p>
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div className="mt-4 grid gap-4 md:grid-cols-4">
                     <MetricCard label="Policy" tone="text-slate-950" value={activePolicyProfile.label} />
                     <MetricCard
                       label="Mode"
                       tone="text-slate-950"
                       value={mode === 'live-target' ? 'Live post' : 'Seeded demo'}
                     />
+                    <MetricCard label="Reports" tone="text-slate-950" value={`${post.numberOfReports}`} />
+                    <MetricCard label="Queue" tone="text-slate-950" value={analysis.caseFile.queuePriority} />
                   </div>
                 </div>
               </section>
