@@ -222,11 +222,11 @@ export const Splash = () => {
                 </span>
               </div>
 
-              <h2 className="mt-4 text-2xl font-semibold leading-tight text-white">
+              <h2 className="mt-4 text-[1.35rem] font-semibold leading-tight text-white">
                 {decisionHeadline(dashboard.analysis.decision)}
               </h2>
 
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-300">
                 <span>{categoryLabel(dashboard.analysis.category)}</span>
                 <span className="text-slate-500">/</span>
                 <span>{recommendedActionLabel(dashboard.analysis.decision)}</span>
@@ -256,16 +256,16 @@ export const Splash = () => {
 
               {activeTab === 'summary' ? (
                 <>
-                  <p className="mt-4 text-sm leading-6 text-slate-200">{dashboard.analysis.reason}</p>
+                  <p className="mt-3 text-sm leading-5 text-slate-200">{dashboard.analysis.reason}</p>
 
-                  <div className="mt-4 overflow-hidden rounded-full bg-white/10">
+                  <div className="mt-3 overflow-hidden rounded-full bg-white/10">
                     <div
                       className={`h-2 rounded-full ${badgeTone(dashboard.analysis.decision)}`}
                       style={{ width: `${dashboard.analysis.confidence}%` }}
                     />
                   </div>
 
-                  <div className="mt-4 grid grid-cols-3 gap-2">
+                  <div className="mt-3 grid grid-cols-3 gap-2">
                     <MiniStat label="Confidence" value={`${dashboard.analysis.confidence}%`} />
                     <MiniStat label="Reports" value={formatCompactNumber(dashboard.post.numberOfReports)} />
                     <MiniStat label="Comments" value={formatCompactNumber(dashboard.post.numberOfComments)} />
@@ -275,11 +275,11 @@ export const Splash = () => {
 
               {activeTab === 'signals' ? (
                 <>
-                  <div className="mt-4 grid gap-2">
+                  <div className="mt-3 grid gap-2">
                     {dashboard.analysis.signals.slice(0, 3).map((signal) => (
                       <div
                         key={`${signal.label}-${signal.detail}`}
-                        className="rounded-2xl border border-white/10 bg-white/6 px-3 py-3 text-sm leading-5 text-slate-200"
+                        className="rounded-[18px] border border-white/10 bg-white/6 px-3 py-2.5 text-sm leading-5 text-slate-200"
                       >
                         <span className="font-semibold text-white">{signal.label}</span>
                         <span className="text-slate-400"> {'->'} </span>
@@ -288,15 +288,15 @@ export const Splash = () => {
                     ))}
                   </div>
 
-                  <div className="mt-4 rounded-3xl border border-white/10 bg-black/20 p-4">
+                  <div className="mt-3 rounded-[22px] border border-white/10 bg-black/20 px-3 py-3">
                     <div className="flex items-center justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
                       <span>Post snapshot</span>
                       <span>r/{dashboard.post.subredditName}</span>
                     </div>
-                    <p className="mt-3 line-clamp-2 text-base font-semibold leading-6 text-white">
+                    <p className="mt-2 line-clamp-2 text-sm font-semibold leading-5 text-white">
                       {dashboard.post.title}
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-400">
+                    <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-400">
                       <span>u/{dashboard.post.authorName}</span>
                       <span>Score {formatCompactNumber(dashboard.post.score)}</span>
                       <span>{dashboard.post.source === 'linked-target' ? 'Live target' : 'Seeded scenario'}</span>
